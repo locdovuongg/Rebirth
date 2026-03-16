@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3034904661010343760}
   m_Layer: 0
   m_Name: Gem_Ult
-  m_TagString: Untagged
+  m_TagString: Ult
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

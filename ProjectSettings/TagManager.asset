@@ -3,7 +3,15 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - BuffDamage
+  - Diamond
+  - HP
+  - Mana
+  - Ult
+  - Damage
+  - Shield
+  - Horse
   layers:
   - Default
   - TransparentFX

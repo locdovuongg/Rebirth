@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1228687581453965812}
   m_Layer: 0
   m_Name: Gem_Mana
-  m_TagString: Untagged
+  m_TagString: Mana
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
