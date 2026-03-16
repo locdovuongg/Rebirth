@@ -1,18 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class BoardManager : MonoBehaviour
 {
     [Header("Board")]
     public int width = 8;
     public int height = 8;
-    public GameObject[] gemPrefabs;
+    public GameObject[] gemPrefabs; // 7 prefabs: Sword, HeavySword, Horse, Shield, Tear, Heart, Diamond
 
     [Header("Timing")]
     public float swapDuration = 0.1f;
-    public float fallSpeed = 12f;       // ô/giây — càng cao càng nhanh
-    public float cascadeDelay = 0.05f;   // delay nhẹ giữa các pha
+    public float fallSpeed = 12f;
+    public float cascadeDelay = 0.05f;
 
     [Header("Input")]
     public float minDragDistance = 0.25f;
@@ -35,7 +36,6 @@ public class BoardManager : MonoBehaviour
     {
         busy = true;
 
-        // spawn tất cả ở trên cao
         List<Coroutine> drops = new List<Coroutine>();
 
         for (int x = 0; x < width; x++)
@@ -43,7 +43,7 @@ public class BoardManager : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 int idx = PickType(x, y, true);
-                float spawnY = height + 2 + y; // offset cao dần
+                float spawnY = height + 2 + y;
                 Vector2 spawnPos = GridToWorld(x, (int)spawnY);
                 Vector2 targetPos = GridToWorld(x, y);
 
@@ -55,39 +55,29 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-        // chờ tất cả rơi xong cùng lúc
         foreach (var c in drops)
             yield return c;
 
-        // dọn match có sẵn (nếu có)
         yield return Resolve();
+
+        if (!HasAnyValidMove())
+            yield return RespawnBoard();
 
         busy = false;
     }
 
-    // ======================= INPUT =======================
+    // ======================= INPUT (New Input System) =======================
 
     void Update()
     {
         if (busy) return;
 
-        Vector2 screenPos = Vector2.zero;
-        bool began = false;
-        bool ended = false;
+        var pointer = Pointer.current;
+        if (pointer == null) return;
 
-        if (Input.touchCount > 0)
-        {
-            Touch t = Input.GetTouch(0);
-            screenPos = t.position;
-            began = (t.phase == TouchPhase.Began);
-            ended = (t.phase == TouchPhase.Ended);
-        }
-        else
-        {
-            screenPos = Input.mousePosition;
-            began = Input.GetMouseButtonDown(0);
-            ended = Input.GetMouseButtonUp(0);
-        }
+        Vector2 screenPos = pointer.position.ReadValue();
+        bool began = pointer.press.wasPressedThisFrame;
+        bool ended = pointer.press.wasReleasedThisFrame;
 
         if (began)
         {
@@ -143,26 +133,48 @@ public class BoardManager : MonoBehaviour
 
         busy = true;
 
-        // animate swap
         yield return AnimateSwap(a, b);
-
-        // swap trong data
         SwapData(a, b);
 
-        // check match
         var matches = FindAllMatches();
 
         if (matches.Count == 0)
         {
-            // revert
             yield return AnimateSwap(a, b);
             SwapData(a, b);
             busy = false;
             yield break;
         }
 
-        // có match → resolve cascade
         yield return Resolve();
+
+        if (!HasAnyValidMove())
+        {
+            Debug.Log("No valid moves! Respawning...");
+            yield return RespawnBoard();
+        }
+
+        // thông báo kết thúc lượt cho BattleManager
+        if (BattleManager.Instance != null)
+            BattleManager.Instance.EndTurn();
+
+        busy = false;
+    }
+
+    /// <summary>
+    /// AI dùng để thực hiện swap
+    /// </summary>
+    public IEnumerator DoSwapFromAI(Gem a, Gem b)
+    {
+        busy = true;
+
+        yield return AnimateSwap(a, b);
+        SwapData(a, b);
+
+        yield return Resolve();
+
+        if (!HasAnyValidMove())
+            yield return RespawnBoard();
 
         busy = false;
     }
@@ -209,7 +221,11 @@ public class BoardManager : MonoBehaviour
             var matches = FindAllMatches();
             if (matches.Count == 0) break;
 
-            // xóa
+            // gửi match cho BattleManager
+            if (BattleManager.Instance != null)
+                BattleManager.Instance.ProcessMatches(matches);
+
+            // xóa gem
             foreach (var gem in matches)
             {
                 if (gem != null)
@@ -220,15 +236,9 @@ public class BoardManager : MonoBehaviour
             }
 
             yield return new WaitForSeconds(cascadeDelay);
-
-            // rơi xuống (đồng thời)
             yield return Collapse();
-
             yield return new WaitForSeconds(cascadeDelay);
-
-            // spawn mới (đồng thời)
             yield return SpawnNew();
-
             yield return new WaitForSeconds(cascadeDelay);
         }
     }
@@ -280,7 +290,6 @@ public class BoardManager : MonoBehaviour
 
         for (int x = 0; x < width; x++)
         {
-            // đếm ô trống trong cột
             List<int> emptyYs = new List<int>();
             for (int y = 0; y < height; y++)
             {
@@ -312,7 +321,7 @@ public class BoardManager : MonoBehaviour
 
     // ======================= MATCH =======================
 
-    HashSet<Gem> FindAllMatches()
+    public HashSet<Gem> FindAllMatches()
     {
         HashSet<Gem> matched = new HashSet<Gem>();
 
@@ -381,6 +390,123 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    // ======================= CHECK VALID MOVES =======================
+
+    bool HasAnyValidMove()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (x + 1 < width && CheckSwapMakesMatch(x, y, x + 1, y))
+                    return true;
+
+                if (y + 1 < height && CheckSwapMakesMatch(x, y, x, y + 1))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool CheckSwapMakesMatch(int x1, int y1, int x2, int y2)
+    {
+        Gem a = board[x1, y1];
+        Gem b = board[x2, y2];
+
+        if (a == null || b == null) return false;
+
+        board[x1, y1] = b;
+        board[x2, y2] = a;
+
+        bool found = HasMatchAt(x1, y1, b.typeId) || HasMatchAt(x2, y2, a.typeId);
+
+        board[x1, y1] = a;
+        board[x2, y2] = b;
+
+        return found;
+    }
+
+    public bool HasMatchAt(int x, int y, int typeId)
+    {
+        int countH = 1;
+        for (int i = x - 1; i >= 0; i--)
+        {
+            if (board[i, y] != null && board[i, y].typeId == typeId) countH++;
+            else break;
+        }
+        for (int i = x + 1; i < width; i++)
+        {
+            if (board[i, y] != null && board[i, y].typeId == typeId) countH++;
+            else break;
+        }
+        if (countH >= 3) return true;
+
+        int countV = 1;
+        for (int i = y - 1; i >= 0; i--)
+        {
+            if (board[x, i] != null && board[x, i].typeId == typeId) countV++;
+            else break;
+        }
+        for (int i = y + 1; i < height; i++)
+        {
+            if (board[x, i] != null && board[x, i].typeId == typeId) countV++;
+            else break;
+        }
+        if (countV >= 3) return true;
+
+        return false;
+    }
+
+    // ======================= RESPAWN =======================
+
+    IEnumerator RespawnBoard()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (board[x, y] != null)
+                {
+                    Destroy(board[x, y].gameObject);
+                    board[x, y] = null;
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        List<Coroutine> drops = new List<Coroutine>();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int idx = PickType(x, y, true);
+                float spawnY = height + 2 + y;
+                Vector2 spawnPos = GridToWorld(x, (int)spawnY);
+                Vector2 targetPos = GridToWorld(x, y);
+
+                Gem gem = CreateGem(idx, x, y, spawnPos);
+                float dist = spawnY - y;
+                float dur = dist / fallSpeed;
+
+                drops.Add(StartCoroutine(AnimateMove(gem.transform, spawnPos, targetPos, dur)));
+            }
+        }
+
+        foreach (var c in drops)
+            yield return c;
+
+        yield return Resolve();
+
+        if (!HasAnyValidMove())
+        {
+            Debug.Log("Still no valid moves after respawn, trying again...");
+            yield return RespawnBoard();
+        }
+    }
+
     // ======================= HELPERS =======================
 
     Gem CreateGem(int typeIdx, int x, int y, Vector2 pos)
@@ -412,13 +538,11 @@ public class BoardManager : MonoBehaviour
 
     bool WouldMatch(int x, int y, int typeId)
     {
-        // 2 bên trái
         if (x >= 2
             && board[x - 1, y] != null && board[x - 1, y].typeId == typeId
             && board[x - 2, y] != null && board[x - 2, y].typeId == typeId)
             return true;
 
-        // 2 bên dưới
         if (y >= 2
             && board[x, y - 1] != null && board[x, y - 1].typeId == typeId
             && board[x, y - 2] != null && board[x, y - 2].typeId == typeId)
@@ -427,12 +551,12 @@ public class BoardManager : MonoBehaviour
         return false;
     }
 
-    bool InBounds(int x, int y)
+    public bool InBounds(int x, int y)
     {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    Vector2 GridToWorld(int x, int y)
+    public Vector2 GridToWorld(int x, int y)
     {
         float startX = -width / 2f + 0.5f;
         float startY = -height / 2f + 0.5f;
@@ -471,4 +595,5 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
+
 }
