@@ -8,7 +8,7 @@ public class BoardManager : MonoBehaviour
     [Header("Board")]
     public int width = 8;
     public int height = 8;
-    public GameObject[] gemPrefabs; // 7 prefabs: Sword, HeavySword, Horse, Shield, Tear, Heart, Diamond
+    public GameObject[] gemPrefabs; // 8 prefabs: đúng thứ tự GemType enum
 
     [Header("Timing")]
     public float swapDuration = 0.1f;
@@ -23,6 +23,7 @@ public class BoardManager : MonoBehaviour
     bool busy;
     Gem dragGem;
     Vector2 dragStart;
+    public bool IsBusy => busy;
 
     // ======================= INIT =======================
 
@@ -42,12 +43,12 @@ public class BoardManager : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                int idx = PickType(x, y, true);
+                GemType type = PickType(x, y, true);
                 float spawnY = height + 2 + y;
                 Vector2 spawnPos = GridToWorld(x, (int)spawnY);
                 Vector2 targetPos = GridToWorld(x, y);
 
-                Gem gem = CreateGem(idx, x, y, spawnPos);
+                Gem gem = CreateGem(type, x, y, spawnPos);
                 float dist = spawnY - y;
                 float dur = dist / fallSpeed;
 
@@ -74,6 +75,8 @@ public class BoardManager : MonoBehaviour
 
         var pointer = Pointer.current;
         if (pointer == null) return;
+
+        if (BattleManager.Instance != null && !BattleManager.Instance.playerTurn) return;
 
         Vector2 screenPos = pointer.position.ReadValue();
         bool began = pointer.press.wasPressedThisFrame;
@@ -133,6 +136,10 @@ public class BoardManager : MonoBehaviour
 
         busy = true;
 
+        // reset hint khi player bắt đầu swap
+        HintSystem hint = FindFirstObjectByType<HintSystem>();
+        if (hint != null) hint.ResetTimer();
+
         yield return AnimateSwap(a, b);
         SwapData(a, b);
 
@@ -154,11 +161,11 @@ public class BoardManager : MonoBehaviour
             yield return RespawnBoard();
         }
 
+        busy = false;
+
         // thông báo kết thúc lượt cho BattleManager
         if (BattleManager.Instance != null)
             BattleManager.Instance.EndTurn();
-
-        busy = false;
     }
 
     /// <summary>
@@ -300,13 +307,13 @@ public class BoardManager : MonoBehaviour
             for (int i = 0; i < emptyYs.Count; i++)
             {
                 int targetY = emptyYs[i];
-                int idx = PickType(x, targetY, true);
+                GemType type = PickType(x, targetY, true);
 
                 float spawnOffsetY = height + 1 + i;
                 Vector2 spawnPos = GridToWorld(x, (int)spawnOffsetY);
                 Vector2 targetPos = GridToWorld(x, targetY);
 
-                Gem gem = CreateGem(idx, x, targetY, spawnPos);
+                Gem gem = CreateGem(type, x, targetY, spawnPos);
 
                 float dist = spawnOffsetY - targetY;
                 float dur = dist / fallSpeed;
@@ -369,7 +376,7 @@ public class BoardManager : MonoBehaviour
     bool SameType(Gem a, Gem b)
     {
         if (a == null || b == null) return false;
-        return a.typeId == b.typeId;
+        return a.gemType == b.gemType;
     }
 
     void CollectHorizontal(HashSet<Gem> set, int startX, int y, int len)
@@ -419,7 +426,7 @@ public class BoardManager : MonoBehaviour
         board[x1, y1] = b;
         board[x2, y2] = a;
 
-        bool found = HasMatchAt(x1, y1, b.typeId) || HasMatchAt(x2, y2, a.typeId);
+        bool found = HasMatchAt(x1, y1, b.gemType) || HasMatchAt(x2, y2, a.gemType);
 
         board[x1, y1] = a;
         board[x2, y2] = b;
@@ -427,17 +434,17 @@ public class BoardManager : MonoBehaviour
         return found;
     }
 
-    public bool HasMatchAt(int x, int y, int typeId)
+    public bool HasMatchAt(int x, int y, GemType type)
     {
         int countH = 1;
         for (int i = x - 1; i >= 0; i--)
         {
-            if (board[i, y] != null && board[i, y].typeId == typeId) countH++;
+            if (board[i, y] != null && board[i, y].gemType == type) countH++;
             else break;
         }
         for (int i = x + 1; i < width; i++)
         {
-            if (board[i, y] != null && board[i, y].typeId == typeId) countH++;
+            if (board[i, y] != null && board[i, y].gemType == type) countH++;
             else break;
         }
         if (countH >= 3) return true;
@@ -445,12 +452,12 @@ public class BoardManager : MonoBehaviour
         int countV = 1;
         for (int i = y - 1; i >= 0; i--)
         {
-            if (board[x, i] != null && board[x, i].typeId == typeId) countV++;
+            if (board[x, i] != null && board[x, i].gemType == type) countV++;
             else break;
         }
         for (int i = y + 1; i < height; i++)
         {
-            if (board[x, i] != null && board[x, i].typeId == typeId) countV++;
+            if (board[x, i] != null && board[x, i].gemType == type) countV++;
             else break;
         }
         if (countV >= 3) return true;
@@ -482,12 +489,12 @@ public class BoardManager : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                int idx = PickType(x, y, true);
+                GemType type = PickType(x, y, true);
                 float spawnY = height + 2 + y;
                 Vector2 spawnPos = GridToWorld(x, (int)spawnY);
                 Vector2 targetPos = GridToWorld(x, y);
 
-                Gem gem = CreateGem(idx, x, y, spawnPos);
+                Gem gem = CreateGem(type, x, y, spawnPos);
                 float dist = spawnY - y;
                 float dur = dist / fallSpeed;
 
@@ -509,43 +516,46 @@ public class BoardManager : MonoBehaviour
 
     // ======================= HELPERS =======================
 
-    Gem CreateGem(int typeIdx, int x, int y, Vector2 pos)
+    Gem CreateGem(GemType type, int x, int y, Vector2 pos)
     {
-        GameObject obj = Instantiate(gemPrefabs[typeIdx], pos, Quaternion.identity, transform);
+        int prefabIndex = (int)type;
+        GameObject obj = Instantiate(gemPrefabs[prefabIndex], pos, Quaternion.identity, transform);
         Gem gem = obj.GetComponent<Gem>();
-        gem.Init(x, y, typeIdx);
+        gem.Init(x, y, type);
         board[x, y] = gem;
         return gem;
     }
 
-    int PickType(int x, int y, bool avoidMatch)
+    GemType PickType(int x, int y, bool avoidMatch)
     {
+        int total = gemPrefabs.Length;
+
         if (!avoidMatch)
-            return Random.Range(0, gemPrefabs.Length);
+            return (GemType)Random.Range(0, total);
 
         int safety = 50;
-        int idx;
+        GemType type;
 
         do
         {
-            idx = Random.Range(0, gemPrefabs.Length);
+            type = (GemType)Random.Range(0, total);
             safety--;
         }
-        while (safety > 0 && WouldMatch(x, y, idx));
+        while (safety > 0 && WouldMatch(x, y, type));
 
-        return idx;
+        return type;
     }
 
-    bool WouldMatch(int x, int y, int typeId)
+    bool WouldMatch(int x, int y, GemType type)
     {
         if (x >= 2
-            && board[x - 1, y] != null && board[x - 1, y].typeId == typeId
-            && board[x - 2, y] != null && board[x - 2, y].typeId == typeId)
+            && board[x - 1, y] != null && board[x - 1, y].gemType == type
+            && board[x - 2, y] != null && board[x - 2, y].gemType == type)
             return true;
 
         if (y >= 2
-            && board[x, y - 1] != null && board[x, y - 1].typeId == typeId
-            && board[x, y - 2] != null && board[x, y - 2].typeId == typeId)
+            && board[x, y - 1] != null && board[x, y - 1].gemType == type
+            && board[x, y - 2] != null && board[x, y - 2].gemType == type)
             return true;
 
         return false;

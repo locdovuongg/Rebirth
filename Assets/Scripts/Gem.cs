@@ -2,28 +2,28 @@ using UnityEngine;
 
 public enum GemType
 {
-    Sword = 0,       // damage thường
-    HeavySword = 1,  // damage mạnh
-    Horse = 2,       // tốc lực (speed bar)
-    Shield = 3,      // phòng thủ (buff defense)
-    Tear = 4,        // mana (energy cho ultimate)
-    Heart = 5,       // hồi HP
-    Diamond = 6      // tiền (gold)
+    HeavySword = 0,
+    Diamond = 1,
+    Heart = 2,
+    Tear = 3,
+    Shield = 4,
+    Horse = 5,
+    Sword = 6,
+    Fire = 7
 }
 
 public class Gem : MonoBehaviour
 {
     public int x;
     public int y;
-    public int typeId;
     public GemType gemType;
 
-    public void Init(int xPos, int yPos, int type)
+    public void Init(int xPos, int yPos, GemType type)
     {
         x = xPos;
         y = yPos;
-        typeId = type;
-        gemType = (GemType)type;
+        gemType = type;
+        gameObject.name = $"{gemType}_{x}_{y}";
     }
 
     public void SetPosition(int newX, int newY)
