@@ -12,9 +12,18 @@ public class HintSystem : MonoBehaviour
     float timer;
     Coroutine blinkCoroutine;
 
+    void Start()
+    {
+        if (board == null)
+            board = FindFirstObjectByType<BoardManager>();
+    }
+
     void Update()
     {
-        if (board == null) return;
+        if (board == null || board.IsBusy) return;
+
+        // chỉ gợi ý khi là lượt player
+        if (BattleManager.Instance != null && !BattleManager.Instance.playerTurn) return;
 
         timer += Time.deltaTime;
 
@@ -100,8 +109,8 @@ public class HintSystem : MonoBehaviour
                 yield break;
 
             // sáng
-            srA.color = Color.white;
-            srB.color = Color.white;
+            srA.color = Color.yellow;
+            srB.color = Color.yellow;
             yield return new WaitForSeconds(1f / blinkSpeed / 2f);
 
             if (a == null || b == null || srA == null || srB == null)

@@ -25,6 +25,8 @@ public class BoardManager : MonoBehaviour
     Vector2 dragStart;
     public bool IsBusy => busy;
 
+    int comboCount;
+
     // ======================= INIT =======================
 
     void Start()
@@ -115,6 +117,13 @@ public class BoardManager : MonoBehaviour
             dragGem = null;
         }
     }
+public void StartSwap(Gem a, Gem b)
+    {
+        if (busy) return;
+        if (a == null || b == null) return;
+
+        StartCoroutine(TrySwap(a, b));
+    }
 
     Gem RaycastGem(Vector2 screenPos)
     {
@@ -147,6 +156,7 @@ public class BoardManager : MonoBehaviour
 
         if (matches.Count == 0)
         {
+            // swap lại nếu không có match
             yield return AnimateSwap(a, b);
             SwapData(a, b);
             busy = false;
@@ -219,6 +229,7 @@ public class BoardManager : MonoBehaviour
 
     IEnumerator Resolve()
     {
+        comboCount = 0;
         int safety = 100;
 
         while (safety > 0)
@@ -228,9 +239,11 @@ public class BoardManager : MonoBehaviour
             var matches = FindAllMatches();
             if (matches.Count == 0) break;
 
-            // gửi match cho BattleManager
+            comboCount++;
+
+            // gửi match cho BattleManager kèm combo
             if (BattleManager.Instance != null)
-                BattleManager.Instance.ProcessMatches(matches);
+                BattleManager.Instance.ProcessMatches(matches, comboCount);
 
             // xóa gem
             foreach (var gem in matches)
@@ -248,6 +261,9 @@ public class BoardManager : MonoBehaviour
             yield return SpawnNew();
             yield return new WaitForSeconds(cascadeDelay);
         }
+
+        if (comboCount > 1)
+            Debug.Log($"Combo x{comboCount}!");
     }
 
     // ======================= COLLAPSE =======================
@@ -519,6 +535,13 @@ public class BoardManager : MonoBehaviour
     Gem CreateGem(GemType type, int x, int y, Vector2 pos)
     {
         int prefabIndex = (int)type;
+
+        if (prefabIndex < 0 || prefabIndex >= gemPrefabs.Length)
+        {
+            Debug.LogError($"Gem prefab index {prefabIndex} out of range! Total prefabs: {gemPrefabs.Length}");
+            return null;
+        }
+
         GameObject obj = Instantiate(gemPrefabs[prefabIndex], pos, Quaternion.identity, transform);
         Gem gem = obj.GetComponent<Gem>();
         gem.Init(x, y, type);
@@ -566,15 +589,18 @@ public class BoardManager : MonoBehaviour
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    public Vector2 GridToWorld(int x, int y)
+     public Vector2 GridToWorld(int x, int y)
     {
-        float startX = -width / 2f + 0.5f;
-        float startY = -height / 2f + 0.5f;
+        // board trung tâm (0,0)
+        float startX = -(width - 1) / 2f;
+        float startY = -(height - 1) / 2f;
         return new Vector2(startX + x, startY + y);
     }
 
     IEnumerator AnimateMove(Transform t, Vector3 from, Vector3 to, float duration)
     {
+        if (t == null) yield break;
+
         if (duration <= 0f)
         {
             t.position = to;
@@ -584,16 +610,20 @@ public class BoardManager : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
+            if (t == null) yield break;
+
             elapsed += Time.deltaTime;
             float k = Mathf.Clamp01(elapsed / duration);
             t.position = Vector3.Lerp(from, to, k);
             yield return null;
         }
-        t.position = to;
+
+        if (t != null)
+            t.position = to;
     }
 
     // ======================= GIZMOS =======================
-
+    
     void OnDrawGizmos()
     {
         Gizmos.color = Color.white;
@@ -605,5 +635,4 @@ public class BoardManager : MonoBehaviour
             }
         }
     }
-
 }
