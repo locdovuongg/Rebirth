@@ -484,6 +484,9 @@ MonoBehaviour:
   boardWidth: 8
   boardHeight: 8
   padding: 0.3
+  bottomUIRatio: 0.29
+  topUIRatio: 0.07
+  boardRoot: {fileID: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -748,24 +751,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df8b5a01717e4da4392b653175fdbdf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIBuilder
-  boardFrameSprite: {fileID: 9204931480678746970, guid: 22389759032f4f9458354ce8e8233aaf, type: 3}
-  panelBGSprite: {fileID: -1512618006851330331, guid: 8f0a7175fb542044f8bc449f2c1df9c1, type: 3}
-  avatarBorderSprite: {fileID: 6724591298119191755, guid: 1f9625b6f85320743b73d2f980079919, type: 3}
-  barBGSprite: {fileID: -7501201644240826356, guid: af7eb10cf8d25f2459e0595651f323fd, type: 3}
-  barFillSprite: {fileID: 9204931480678746970, guid: 22389759032f4f9458354ce8e8233aaf, type: 3}
-  glowSprite: {fileID: 6724591298119191755, guid: 1f9625b6f85320743b73d2f980079919, type: 3}
-  topDecoSprite: {fileID: -3753825769889500098, guid: 1be5623252357ca4896b621a945947bd, type: 3}
-  playerAvatarSprite: {fileID: -3753825769889500098, guid: 1be5623252357ca4896b621a945947bd, type: 3}
-  enemyAvatarSprite: {fileID: 21300000, guid: fb00c7f4d6c34a040a88a07b656cbc03, type: 3}
+  playerSkillUser: {fileID: 0}
+  skillButtonSprite: {fileID: 0}
+  boardFrameSprite: {fileID: 0}
+  panelBGSprite: {fileID: 0}
+  avatarBorderSprite: {fileID: 0}
+  barBGSprite: {fileID: 0}
+  barFillSprite: {fileID: 0}
+  glowSprite: {fileID: 0}
+  topDecoSprite: {fileID: 0}
+  playerAvatarSprite: {fileID: 0}
+  enemyAvatarSprite: {fileID: 0}
   buttonSprite: {fileID: 0}
-  bgColor: {r: 0.08, g: 0.06, b: 0.1, a: 1}
-  frameColor: {r: 0.35, g: 0.25, b: 0.18, a: 1}
+  bgColor: {r: 0.75825274, g: 0.7533375, b: 0.764151, a: 1}
+  frameColor: {r: 1, g: 0.09759988, b: 0, a: 1}
   hpColor: {r: 0.2, g: 0.72, b: 0.2, a: 1}
   manaColor: {r: 0.2, g: 0.4, b: 0.82, a: 1}
-  barBGColor: {r: 0.12, g: 0.1, b: 0.1, a: 1}
+  barBGColor: {r: 1, g: 0.7688679, b: 0.7688679, a: 1}
   borderGold: {r: 0.85, g: 0.7, b: 0.2, a: 1}
   turnGlowColor: {r: 1, g: 0.9, b: 0.3, a: 0.7}
-  battleHUD: {fileID: 0}
 --- !u!4 &1662257809
 Transform:
   m_ObjectHideFlags: 0
@@ -1153,7 +1157,11 @@ MonoBehaviour:
     shield: 0
     speed: 0
     speedMax: 5
+    extraTurnReady: 0
+    ultCharge: 0
+    ultChargeMax: 10
     ultimateReady: 0
+    statusEffects: []
   enemy:
     maxHP: 100
     currentHP: 100
@@ -1162,11 +1170,16 @@ MonoBehaviour:
     shield: 0
     speed: 0
     speedMax: 5
+    extraTurnReady: 0
+    ultCharge: 0
+    ultChargeMax: 10
     ultimateReady: 0
+    statusEffects: []
   swordDamage: 10
-  heavySwordDamage: 15
-  fireDamage: 12
   ultimateDamage: 40
+  fireUltCharge: 1
+  playerDiamondCollected: 0
+  enemyDiamondCollected: 0
   damagePopupPrefab: {fileID: 2790344088336497421, guid: 213142f3e3e03c44fb23f8e2ddae262a, type: 3}
   popupPlayer: {fileID: 1656921413}
   popupEnemy: {fileID: 1825578827}

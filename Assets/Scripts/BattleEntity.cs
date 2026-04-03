@@ -12,9 +12,14 @@ public class BattleEntity
 
     public int shield;
 
+    // Speed: đủ 5 → được thêm 1 lượt
     public int speed;
     public int speedMax = 5;
+    public bool extraTurnReady;
 
+    // Ult: đủ 10 → được dùng Ultimate
+    public int ultCharge;
+    public int ultChargeMax = 10;
     public bool ultimateReady;
 
     // ========== STATUS EFFECTS ==========
@@ -103,15 +108,23 @@ public class BattleEntity
 
     // ========== CORE ==========
 
+    // Lưu lại phần shield absorbed lần cuối để popup hiển thị
+    [System.NonSerialized] public int lastShieldAbsorbed;
+
     public void TakeDamage(int dmg)
     {
+        int shieldBefore = shield;
+
         int absorbed = Mathf.Min(shield, dmg);
         shield -= absorbed;
+        lastShieldAbsorbed = absorbed;
 
         int remaining = dmg - absorbed;
         currentHP -= remaining;
 
         if (currentHP < 0) currentHP = 0;
+
+        Debug.Log($"[TakeDamage] dmg={dmg} shield={shieldBefore}→{shield} (absorbed {absorbed}) HP={currentHP + remaining}→{currentHP}");
     }
 
     public void Heal(int value)
@@ -130,7 +143,17 @@ public class BattleEntity
 
         if (speed >= speedMax)
         {
-            speed = speedMax;
+            speed -= speedMax;  // trừ đi, phần dư giữ lại
+            extraTurnReady = true;
+        }
+    }
+
+    public void AddUltCharge(int value)
+    {
+        ultCharge = Mathf.Min(ultCharge + value, ultChargeMax);
+
+        if (ultCharge >= ultChargeMax)
+        {
             ultimateReady = true;
         }
     }

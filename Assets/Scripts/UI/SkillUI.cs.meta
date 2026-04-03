@@ -1,2 +1,14 @@
 fileFormatVersion: 2
 guid: 1186e239f85854f408dbb91d21ad2f33
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - playerSkills: {instanceID: 0}
+  - buttonContainer: {instanceID: 0}
+  - buttonBGSprite: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -50,7 +50,26 @@ public class UIBuilder : MonoBehaviour
 
     void Awake()
     {
+        GenerateMissingSprites();
         BuildAll();
+    }
+
+    /// <summary>
+    /// Tự tạo sprite nếu chưa kéo vào Inspector
+    /// </summary>
+    void GenerateMissingSprites()
+    {
+        if (boardFrameSprite == null)   boardFrameSprite = SpriteGenerator.BoardFrame();
+        if (panelBGSprite == null)      panelBGSprite = SpriteGenerator.PanelBG();
+        if (avatarBorderSprite == null)  avatarBorderSprite = SpriteGenerator.AvatarBorder();
+        if (barBGSprite == null)        barBGSprite = SpriteGenerator.BarBG();
+        if (barFillSprite == null)      barFillSprite = SpriteGenerator.BarFill();
+        if (glowSprite == null)         glowSprite = SpriteGenerator.Glow();
+        if (topDecoSprite == null)      topDecoSprite = SpriteGenerator.TopDecoration();
+        if (playerAvatarSprite == null)  playerAvatarSprite = SpriteGenerator.PlayerAvatar();
+        if (enemyAvatarSprite == null)  enemyAvatarSprite = SpriteGenerator.EnemyAvatar();
+        if (buttonSprite == null)       buttonSprite = SpriteGenerator.ButtonSprite();
+        if (skillButtonSprite == null)  skillButtonSprite = SpriteGenerator.SkillButton();
     }
 
     void BuildAll()
@@ -73,10 +92,8 @@ public class UIBuilder : MonoBehaviour
             Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f));
         safeArea.gameObject.AddComponent<SafeArea>();
 
-        // ========== BG ==========
-        CreateImage(safeArea, "Background",
-            Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
-            null, bgColor);
+        // ========== BG — BỎ, không tạo background che game ==========
+        // UI chỉ hiện ở top, bottom, không phủ lên board
 
         // ========== BUILD ALL SECTIONS ==========
         BuildTopDecor();
@@ -97,10 +114,12 @@ public class UIBuilder : MonoBehaviour
 
     void BuildTopDecor()
     {
+        // Chiếm 6.3% trên màn hình
         var top = CreatePanel(safeArea, "TopDecoration",
-            new Vector2(0, 1), new Vector2(1, 1),
+            new Vector2(0, 0.937f), new Vector2(1, 1),
             new Vector2(0.5f, 1));
-        top.sizeDelta = new Vector2(0, 280);
+        top.offsetMin = Vector2.zero;
+        top.offsetMax = Vector2.zero;
 
         var img = top.gameObject.AddComponent<Image>();
         if (topDecoSprite != null)
@@ -113,6 +132,7 @@ public class UIBuilder : MonoBehaviour
         {
             img.color = new Color(0.05f, 0.03f, 0.08f);
         }
+        img.raycastTarget = false; // không chặn click
     }
 
     // =====================================================
@@ -121,11 +141,18 @@ public class UIBuilder : MonoBehaviour
 
     void BuildBoardFrame()
     {
+        // Board frame nằm giữa top decor (120px) và turn text (trên bottom panel 550px + 55px gap)
+        // Dùng anchor tương đối để responsive
+        // bottomPanel = 550/1920 ≈ 0.286, turnText gap = 55/1920 ≈ 0.029
+        // topDecor = 120/1920 ≈ 0.063
+        float bottomAnchor = 0.32f;  // trên bottom panel + turn text
+        float topAnchor = 0.935f;    // dưới top decor
+
         var frame = CreatePanel(safeArea, "BoardFrame",
-            new Vector2(0, 0), new Vector2(1, 1),
+            new Vector2(0, bottomAnchor), new Vector2(1, topAnchor),
             new Vector2(0.5f, 0.5f));
-        frame.offsetMin = new Vector2(20, 500);
-        frame.offsetMax = new Vector2(-20, -260);
+        frame.offsetMin = new Vector2(10, 5);    // padding trái, dưới
+        frame.offsetMax = new Vector2(-10, -5);   // padding phải, trên
 
         var frameImg = frame.gameObject.AddComponent<Image>();
         if (boardFrameSprite != null)
@@ -134,6 +161,7 @@ public class UIBuilder : MonoBehaviour
             frameImg.type = Image.Type.Sliced;
         }
         frameImg.color = frameColor;
+        frameImg.raycastTarget = false; // không chặn click vào board
 
         frame.gameObject.AddComponent<BoardFrameEffect>().frameImage = frameImg;
     }
@@ -144,11 +172,15 @@ public class UIBuilder : MonoBehaviour
 
     void BuildTurnText()
     {
+        // Nằm ngay trên bottom panel
+        // bottomPanel top anchor = 550/1920 ≈ 0.286
+        float anchor = 0.295f;
+
         var turnRT = CreatePanel(safeArea, "TurnText",
-            new Vector2(0.5f, 0), new Vector2(0.5f, 0),
+            new Vector2(0, anchor), new Vector2(1, anchor),
             new Vector2(0.5f, 0));
-        turnRT.sizeDelta = new Vector2(500, 60);
-        turnRT.anchoredPosition = new Vector2(0, 490);
+        turnRT.sizeDelta = new Vector2(0, 50);
+        turnRT.anchoredPosition = Vector2.zero;
 
         turnTMP = turnRT.gameObject.AddComponent<TextMeshProUGUI>();
         turnTMP.text = "LƯỢT CỦA BẠN";
@@ -156,6 +188,7 @@ public class UIBuilder : MonoBehaviour
         turnTMP.alignment = TextAlignmentOptions.Center;
         turnTMP.fontStyle = FontStyles.Bold;
         turnTMP.color = new Color(0.3f, 1f, 0.4f);
+        turnTMP.raycastTarget = false;
 
         // outline
         var outline = turnRT.gameObject.AddComponent<Outline>();
@@ -173,7 +206,7 @@ public class UIBuilder : MonoBehaviour
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
             new Vector2(0.5f, 0.5f));
         comboRT.sizeDelta = new Vector2(500, 80);
-        comboRT.anchoredPosition = new Vector2(0, 100);
+        comboRT.anchoredPosition = new Vector2(0, 200);
 
         comboTMP = comboRT.gameObject.AddComponent<TextMeshProUGUI>();
         comboTMP.text = "";
@@ -181,6 +214,7 @@ public class UIBuilder : MonoBehaviour
         comboTMP.alignment = TextAlignmentOptions.Center;
         comboTMP.fontStyle = FontStyles.Bold;
         comboTMP.color = Color.yellow;
+        comboTMP.raycastTarget = false;
 
         var outline = comboRT.gameObject.AddComponent<Outline>();
         outline.effectColor = Color.black;
@@ -195,11 +229,12 @@ public class UIBuilder : MonoBehaviour
 
     void BuildBottomPanel()
     {
-        // --- Container ---
+        // --- Container chiếm 29% dưới màn hình ---
         var bottom = CreatePanel(safeArea, "BottomPanel",
-            new Vector2(0, 0), new Vector2(1, 0),
+            new Vector2(0, 0), new Vector2(1, 0.286f),
             new Vector2(0.5f, 0));
-        bottom.sizeDelta = new Vector2(0, 480);
+        bottom.offsetMin = Vector2.zero;
+        bottom.offsetMax = Vector2.zero;
 
         var bottomBG = bottom.gameObject.AddComponent<Image>();
         if (panelBGSprite != null)
@@ -211,19 +246,19 @@ public class UIBuilder : MonoBehaviour
 
         // --- Player Side (LEFT, phần trên) ---
         var playerSide = CreatePanel(bottom, "PlayerSide",
-            new Vector2(0, 0.42f), new Vector2(0.48f, 1),
+            new Vector2(0, 0.38f), new Vector2(0.48f, 1),
             new Vector2(0, 1));
-        playerSide.offsetMin = new Vector2(15, 0);
-        playerSide.offsetMax = new Vector2(0, -10);
+        playerSide.offsetMin = new Vector2(10, 0);
+        playerSide.offsetMax = new Vector2(0, -8);
 
         playerCP = BuildCharacterSide(playerSide, playerAvatarSprite, false);
 
         // --- Enemy Side (RIGHT, phần trên) ---
         var enemySide = CreatePanel(bottom, "EnemySide",
-            new Vector2(0.52f, 0.42f), new Vector2(1, 1),
+            new Vector2(0.52f, 0.38f), new Vector2(1, 1),
             new Vector2(1, 1));
         enemySide.offsetMin = new Vector2(0, 0);
-        enemySide.offsetMax = new Vector2(-15, -10);
+        enemySide.offsetMax = new Vector2(-10, -8);
 
         enemyCP = BuildCharacterSide(enemySide, enemyAvatarSprite, true);
 
@@ -242,10 +277,10 @@ public class UIBuilder : MonoBehaviour
     {
         var cp = parent.gameObject.AddComponent<CharacterPanel>();
 
-        float avatarSize = 150;
-        float barWidth = 200;
-        float barHeight = 30;
-        float barGap = 10;
+        float avatarSize = 110;
+        float barWidth = 160;
+        float barHeight = 20;
+        float barGap = 5;
 
         // ========== TURN GLOW (behind avatar) ==========
         var glow = CreatePanel(parent,
@@ -253,7 +288,7 @@ public class UIBuilder : MonoBehaviour
             isRight ? new Vector2(1, 0.5f) : new Vector2(0, 0.5f),
             isRight ? new Vector2(1, 0.5f) : new Vector2(0, 0.5f),
             new Vector2(0.5f, 0.5f));
-        glow.sizeDelta = new Vector2(avatarSize + 24, avatarSize + 24);
+        glow.sizeDelta = new Vector2(avatarSize + 20, avatarSize + 20);
         glow.anchoredPosition = new Vector2(
             isRight ? -avatarSize / 2 - 10 : avatarSize / 2 + 10, 0);
 
@@ -298,20 +333,37 @@ public class UIBuilder : MonoBehaviour
         cp.avatarImage = avImg;
 
         // ========== BARS ==========
-        float barX = isRight ? -avatarSize - 25 : avatarSize + 25;
+        float barX = isRight ? -avatarSize - 15 : avatarSize + 15;
         float barAnchorX = isRight ? 1f : 0f;
 
-        // HP Bar
+        // 4 bars stacked: HP, Mana, Speed, Ult
+        float totalBars = 4;
+        float totalHeight = totalBars * barHeight + (totalBars - 1) * barGap;
+        float topY = totalHeight / 2f - barHeight / 2f;
+
+        // HP Bar (top)
         cp.hpFill = BuildBar(parent, "HPBar",
-            barX, barGap / 2 + barHeight / 2,
+            barX, topY,
             barWidth, barHeight,
             barAnchorX, hpColor, isRight);
 
         // Mana Bar
         cp.manaFill = BuildBar(parent, "ManaBar",
-            barX, -(barGap / 2 + barHeight / 2),
+            barX, topY - (barHeight + barGap),
             barWidth, barHeight,
             barAnchorX, manaColor, isRight);
+
+        // Speed Bar (extra turn)
+        cp.speedFill = BuildBar(parent, "SpeedBar",
+            barX, topY - 2 * (barHeight + barGap),
+            barWidth, barHeight,
+            barAnchorX, new Color(0.4f, 0.8f, 1f), isRight);
+
+        // Ult Bar (ultimate)
+        cp.ultFill = BuildBar(parent, "UltBar",
+            barX, topY - 3 * (barHeight + barGap),
+            barWidth, barHeight,
+            barAnchorX, new Color(1f, 0.5f, 0.1f), isRight);
 
         return cp;
     }
@@ -365,11 +417,12 @@ public class UIBuilder : MonoBehaviour
 
     void BuildUltButton(RectTransform bottom)
     {
+        // Nằm giữa, ngay trên skill panel
         var ultRT = CreatePanel(bottom, "UltButton",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            new Vector2(0.5f, 0.5f));
-        ultRT.sizeDelta = new Vector2(140, 55);
-        ultRT.anchoredPosition = new Vector2(0, 50);
+            new Vector2(0.5f, 0.38f), new Vector2(0.5f, 0.38f),
+            new Vector2(0.5f, 1));
+        ultRT.sizeDelta = new Vector2(130, 48);
+        ultRT.anchoredPosition = new Vector2(0, -5);
 
         var ultImg = ultRT.gameObject.AddComponent<Image>();
         if (buttonSprite != null)
@@ -415,10 +468,10 @@ public class UIBuilder : MonoBehaviour
     {
         // --- Container chiếm phần dưới bottom panel ---
         var skillArea = CreatePanel(bottomPanel, "SkillPanel",
-            new Vector2(0, 0), new Vector2(1, 0.38f),
+            new Vector2(0, 0), new Vector2(1, 0.35f),
             new Vector2(0.5f, 0));
-        skillArea.offsetMin = new Vector2(10, 8);
-        skillArea.offsetMax = new Vector2(-10, 0);
+        skillArea.offsetMin = new Vector2(8, 5);
+        skillArea.offsetMax = new Vector2(-8, 0);
 
         // nền riêng cho skill panel
         var skillBG = skillArea.gameObject.AddComponent<Image>();
@@ -439,7 +492,7 @@ public class UIBuilder : MonoBehaviour
         skillUI.playerSkills = playerSkillUser;
         skillUI.buttonContainer = skillArea;
         skillUI.buttonBGSprite = skillButtonSprite;
-        skillUI.buttonSize = 110;
+        skillUI.buttonSize = 90;
 
         skillContainer = skillArea;
     }
@@ -450,14 +503,18 @@ public class UIBuilder : MonoBehaviour
 
     void BuildPopupAnchors()
     {
+        // Popup nằm trong board area
+        // Board center ở world (0, offset) — CameraFit dịch BoardManager lên
+        // Player popup: bên trái-dưới board
+        // Enemy popup: bên phải-trên board
         var pAnchor = new GameObject("PlayerPopupAnchor");
         pAnchor.transform.SetParent(transform);
-        pAnchor.transform.position = new Vector3(-2f, -3f, 0);
+        pAnchor.transform.position = new Vector3(-1f, -1f, 0);
         playerPopupAnchor = pAnchor.transform;
 
         var eAnchor = new GameObject("EnemyPopupAnchor");
         eAnchor.transform.SetParent(transform);
-        eAnchor.transform.position = new Vector3(2f, -3f, 0);
+        eAnchor.transform.position = new Vector3(1f, 1f, 0);
         enemyPopupAnchor = eAnchor.transform;
     }
 
@@ -492,7 +549,7 @@ public class UIBuilder : MonoBehaviour
         resultTMP.alignment = TextAlignmentOptions.Center;
         resultTMP.color = Color.yellow;
         resultTMP.fontStyle = FontStyles.Bold;
-        resultTMP.enableWordWrapping = true;
+        resultTMP.textWrappingMode = TextWrappingModes.Normal;
 
         var outline = textObj.AddComponent<Outline>();
         outline.effectColor = Color.black;

@@ -99,15 +99,33 @@ public class EnemyAI : MonoBehaviour
         var matches = board.FindAllMatches();
         score += matches.Count * 5;
 
-        // ưu tiên gem tấn công
+        // ưu tiên gem theo chiến thuật
         foreach (var gem in matches)
         {
             if (gem == null) continue;
             switch (gem.gemType)
             {
                 case GemType.Sword:
-                case GemType.HeavySword:
                     score += 3; // ưu tiên damage
+                    break;
+                case GemType.BuffDamage:
+                    score += 2; // buff sát thương
+                    break;
+                case GemType.Fire:
+                    // ưu tiên charge ult nếu gần đầy
+                    if (BattleManager.Instance != null &&
+                        BattleManager.Instance.enemy.ultCharge >= BattleManager.Instance.enemy.ultChargeMax - 3)
+                        score += 4;
+                    else
+                        score += 2;
+                    break;
+                case GemType.Horse:
+                    // ưu tiên speed nếu gần đủ extra turn
+                    if (BattleManager.Instance != null &&
+                        BattleManager.Instance.enemy.speed >= BattleManager.Instance.enemy.speedMax - 2)
+                        score += 4;
+                    else
+                        score += 2;
                     break;
                 case GemType.Heart:
                     // nếu máu thấp thì ưu tiên heal
@@ -117,6 +135,9 @@ public class EnemyAI : MonoBehaviour
                     break;
                 case GemType.Shield:
                     score += 2;
+                    break;
+                case GemType.Tear:
+                    score += 1; // mana có ích nhưng ít ưu tiên
                     break;
             }
         }

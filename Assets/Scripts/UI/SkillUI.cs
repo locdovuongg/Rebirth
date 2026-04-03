@@ -18,6 +18,7 @@ public class SkillUI : MonoBehaviour
 
     List<SkillSlot> slots = new();
 
+    [System.Obsolete]
     void Start()
     {
         if (playerSkills == null)
@@ -29,6 +30,7 @@ public class SkillUI : MonoBehaviour
         BuildButtons();
     }
 
+    [System.Obsolete]
     void BuildButtons()
     {
         if (playerSkills == null) return;
@@ -274,15 +276,15 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case Skill.SkillType.Burn:
-                bm.SpawnPopup($"🔥 Đốt cháy {skill.duration}t", new Color(1f, 0.4f, 0.1f), bm.popupEnemy);
+                bm.SpawnPopup($"BURN {skill.duration}t", new Color(1f, 0.4f, 0.1f), bm.popupEnemy);
                 break;
 
             case Skill.SkillType.Freeze:
-                bm.SpawnPopup($"❄️ Đóng băng {skill.duration}t", new Color(0.3f, 0.7f, 1f), bm.popupEnemy);
+                bm.SpawnPopup($"FREEZE {skill.duration}t", new Color(0.3f, 0.7f, 1f), bm.popupEnemy);
                 break;
 
             case Skill.SkillType.Poison:
-                bm.SpawnPopup($"☠️ Nhiễm độc {skill.duration}t", new Color(0.4f, 0.9f, 0.2f), bm.popupEnemy);
+                bm.SpawnPopup($"POISON {skill.duration}t", new Color(0.4f, 0.9f, 0.2f), bm.popupEnemy);
                 break;
 
             case Skill.SkillType.Heal:
@@ -290,15 +292,15 @@ public class SkillUI : MonoBehaviour
                 break;
 
             case Skill.SkillType.Shield:
-                bm.SpawnPopup($"+{skill.value} 🛡", new Color(0.5f, 0.7f, 1f), bm.popupPlayer);
+                bm.SpawnPopup($"+{skill.value} SHD", new Color(0.5f, 0.7f, 1f), bm.popupPlayer);
                 break;
 
             case Skill.SkillType.AttackBuff:
-                bm.SpawnPopup($"⚔️ +{(int)((skill.buffMultiplier - 1f) * 100)}% DMG", new Color(1f, 0.8f, 0.2f), bm.popupPlayer);
+                bm.SpawnPopup($"ATK +{(int)((skill.buffMultiplier - 1f) * 100)}%", new Color(1f, 0.8f, 0.2f), bm.popupPlayer);
                 break;
 
             case Skill.SkillType.SpeedBuff:
-                bm.SpawnPopup($"⚡ +{skill.value} Speed", new Color(0.9f, 0.9f, 0.3f), bm.popupPlayer);
+                bm.SpawnPopup($"+{skill.value} SPD", new Color(0.9f, 0.9f, 0.3f), bm.popupPlayer);
                 break;
 
             case Skill.SkillType.DamageAndHeal:

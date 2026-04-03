@@ -78,10 +78,10 @@ public class StatusEffect
     {
         return type switch
         {
-            Type.Burn => "🔥",
-            Type.Freeze => "❄️",
-            Type.Poison => "☠️",
-            Type.AttackBuff => "⚔️",
+            Type.Burn => "BRN",
+            Type.Freeze => "FRZ",
+            Type.Poison => "PSN",
+            Type.AttackBuff => "ATK",
             _ => "?"
         };
     }

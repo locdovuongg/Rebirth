@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e505a4b0ef238834badf967604e63b11, type: 3}
+  m_Name: AttackBuff
+  m_EditorClassIdentifier: Assembly-CSharp::Skill
+  skillName: "Cu\u1ED3ng n\u1ED9"
+  description: "x1.5 dame trong 3 l\u01B0\u1EE3t"
+  icon: {fileID: 9204931480678746970, guid: 22389759032f4f9458354ce8e8233aaf, type: 3}
+  manaCost: 15
+  cooldown: 4
+  isUltimate: 0
+  type: 6
+  value: 0
+  duration: 3
+  buffMultiplier: 1.5
+  currentCooldown: 0

@@ -11,9 +11,16 @@ public class BattleManager : MonoBehaviour
 
     [Header("Damage Values")]
     public int swordDamage = 10;
-    public int heavySwordDamage = 15;
-    public int fireDamage = 12;
     public int ultimateDamage = 40;
+
+    [Header("Ult Charge")]
+    [Tooltip("Mỗi gem Fire cộng bao nhiêu điểm speed/ult")]
+    public int fireUltCharge = 1;
+
+    [Header("Diamond (currency)")]
+    [Tooltip("Số kim cương player thu được trong trận")]
+    public int playerDiamondCollected;
+    public int enemyDiamondCollected;
 
     [Header("Popup")]
     public GameObject damagePopupPrefab;
@@ -77,49 +84,68 @@ public class BattleManager : MonoBehaviour
         BattleEntity self = Current();
         BattleEntity target = Target();
 
+        Debug.Log($"[Battle] ApplyEffect: {type} x{count} combo={combo} mul={mul:F2} turn={(playerTurn ? "Player" : "Enemy")}");
+
         switch (type)
         {
             case GemType.Sword:
-                int swordDmg = (int)(count * swordDamage * mul);
+                int swordDmg = (int)(count * swordDamage * mul * self.attackMultiplier);
                 DealDamage(swordDmg);
                 break;
 
-            case GemType.HeavySword:
-                int heavyDmg = (int)(count * heavySwordDamage * mul);
-                DealDamage(heavyDmg);
+            case GemType.Fire:
+                // Fire = tăng điểm ult charge
+                int ultPts = count * fireUltCharge;
+                self.AddUltCharge(ultPts);
+                SpawnPopup("+" + ultPts + " ULT", new Color(1f, 0.5f, 0.1f),
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
-            case GemType.Fire:
-                int fireDmg = (int)(count * fireDamage * mul);
-                DealDamage(fireDmg);
+            case GemType.BuffDamage:
+                // Tăng sát thương tạm thời (3 lượt, x1.5)
+                int buffTurns = 3;
+                float buffMul = 1.5f;
+                self.ApplyStatus(StatusEffect.Type.AttackBuff, 0, buffTurns, buffMul);
+                SpawnPopup("ATK UP!", new Color(1f, 0.8f, 0.2f),
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
             case GemType.Heart:
                 int healAmount = (int)(count * 5 * mul);
                 self.Heal(healAmount);
-                SpawnPopup("+" + healAmount, Color.green, playerTurn ? popupPlayer : popupEnemy);
+                SpawnPopup("+" + healAmount, Color.green,
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
             case GemType.Tear:
                 int manaAmount = count * 2;
                 self.AddMana(manaAmount);
-                SpawnPopup("+" + manaAmount + " MP", Color.cyan, playerTurn ? popupPlayer : popupEnemy);
+                SpawnPopup("+" + manaAmount + " MP", Color.cyan,
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
             case GemType.Shield:
                 int shieldAmount = count * 3;
                 self.shield += shieldAmount;
-                SpawnPopup("+" + shieldAmount + " 🛡", Color.gray, playerTurn ? popupPlayer : popupEnemy);
+                SpawnPopup("+" + shieldAmount + " SHD", Color.gray,
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
             case GemType.Horse:
                 self.AddSpeed(count);
+                SpawnPopup("+" + count + " SPD", new Color(0.4f, 0.8f, 1f),
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
 
             case GemType.Diamond:
-                // Diamond: multi-effect — thêm mana + speed
-                self.AddMana(count);
-                self.AddSpeed(count);
+                // Diamond: tích luỹ kim cương, nhận khi kết thúc trận
+                int gems = count;
+                if (playerTurn)
+                    playerDiamondCollected += gems;
+                else
+                    enemyDiamondCollected += gems;
+                SpawnPopup("+" + gems + " GEM", new Color(0.4f, 0.85f, 1f),
+                    playerTurn ? popupPlayer : popupEnemy);
                 break;
         }
     }
@@ -131,18 +157,33 @@ public class BattleManager : MonoBehaviour
     {
         BattleEntity t = Target();
 
-        int before = t.currentHP;
+        int hpBefore = t.currentHP;
         t.TakeDamage(dmg);
-        int dealt = before - t.currentHP;
+        int hpLost = hpBefore - t.currentHP;
+        int shieldAbsorbed = t.lastShieldAbsorbed;
 
-        SpawnPopup("-" + dealt, Color.red, playerTurn ? popupEnemy : popupPlayer);
+        Transform anchor = playerTurn ? popupEnemy : popupPlayer;
+
+        // Hiện popup shield absorbed nếu có
+        if (shieldAbsorbed > 0)
+            SpawnPopup($"SHD -{shieldAbsorbed}", Color.gray, anchor);
+
+        // Hiện popup HP lost
+        if (hpLost > 0)
+            SpawnPopup($"-{hpLost}", Color.red, anchor);
+        else if (shieldAbsorbed > 0)
+            SpawnPopup("BLOCKED!", Color.gray, anchor);
 
         if (t.IsDead)
         {
             isBattleOver = true;
-            string result = playerTurn ? "PLAYER WIN!" : "PLAYER LOSE!";
+            bool playerWon = playerTurn;
+            string result = playerWon ? "PLAYER WIN!" : "PLAYER LOSE!";
             Debug.Log(result);
-            // TODO: show kết quả UI
+            Debug.Log($"[Diamond] Player: {playerDiamondCollected} | Enemy: {enemyDiamondCollected}");
+
+            // TODO: lưu kim cương vào save data / trao thưởng
+            // Ví dụ: PlayerData.diamonds += playerDiamondCollected;
         }
     }
 
@@ -154,7 +195,7 @@ public class BattleManager : MonoBehaviour
         if (!Current().ultimateReady) return;
 
         Current().ultimateReady = false;
-        Current().speed = 0;
+        Current().ultCharge = 0;
 
         DealDamage(ultimateDamage);
         SpawnPopup("ULTIMATE!", Color.yellow, playerTurn ? popupEnemy : popupPlayer);
@@ -177,9 +218,9 @@ public class BattleManager : MonoBehaviour
             {
                 string icon = dtype switch
                 {
-                    StatusEffect.Type.Burn => "🔥",
-                    StatusEffect.Type.Freeze => "❄️",
-                    StatusEffect.Type.Poison => "☠️",
+                    StatusEffect.Type.Burn => "BURN",
+                    StatusEffect.Type.Freeze => "FREEZE",
+                    StatusEffect.Type.Poison => "POISON",
                     _ => ""
                 };
 
@@ -199,7 +240,7 @@ public class BattleManager : MonoBehaviour
         if (result.skipTurn)
         {
             Transform anchor = playerTurn ? popupPlayer : popupEnemy;
-            SpawnPopup("❄️ ĐÓNG BĂNG!", new Color(0.3f, 0.7f, 1f), anchor);
+            SpawnPopup("DONG BANG!", new Color(0.3f, 0.7f, 1f), anchor);
 
             EndTurn(); // tự bỏ lượt
             return;
@@ -222,15 +263,42 @@ public class BattleManager : MonoBehaviour
     public void EndTurn()
     {
         if (isBattleOver) return;
-        if (!playerTurn) return;
 
-        playerTurn = false;
-        StartCoroutine(EnemyTurn());
+        BattleEntity current = Current();
+
+        // Check extra turn: speed đủ 5 → được thêm lượt
+        if (current.extraTurnReady)
+        {
+            current.extraTurnReady = false;
+            Debug.Log($"[Battle] EXTRA TURN! ({(playerTurn ? "Player" : "Enemy")})");
+            SpawnPopup("EXTRA TURN!", new Color(1f, 0.9f, 0.3f),
+                playerTurn ? popupPlayer : popupEnemy);
+
+            // Bắt đầu lượt mới cho cùng người chơi (không đổi turn)
+            StartTurn();
+            return;
+        }
+
+        if (playerTurn)
+        {
+            playerTurn = false;
+            StartCoroutine(EnemyTurn());
+        }
+        else
+        {
+            playerTurn = true;
+            StartTurn();
+        }
     }
 
     IEnumerator EnemyTurn()
     {
         yield return new WaitForSeconds(0.5f);
+
+        if (isBattleOver) yield break;
+
+        // Bắt đầu lượt enemy (tick status, check freeze...)
+        StartTurn();
 
         if (isBattleOver) yield break;
 
@@ -241,25 +309,50 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
+        if (isBattleOver) yield break;
+
         EnemyAI ai = FindFirstObjectByType<EnemyAI>();
 
         if (ai != null)
             yield return ai.DoEnemyMove();
 
+        // Check extra turn cho enemy
+        if (enemy.extraTurnReady && !isBattleOver)
+        {
+            enemy.extraTurnReady = false;
+            Debug.Log("[Battle] EXTRA TURN! (Enemy)");
+            SpawnPopup("EXTRA TURN!", new Color(1f, 0.9f, 0.3f), popupEnemy);
+            yield return new WaitForSeconds(0.5f);
+
+            // enemy đánh thêm lượt
+            if (enemy.ultimateReady)
+            {
+                UseUltimate();
+                yield return new WaitForSeconds(0.5f);
+            }
+            if (ai != null && !isBattleOver)
+                yield return ai.DoEnemyMove();
+        }
+
         if (!isBattleOver)
+        {
             playerTurn = true;
+            StartTurn();
+        }
     }
 
     // ================= POPUP =================
 
     public void SpawnPopup(string text, Color color, Transform pos)
     {
-        if (damagePopupPrefab == null || pos == null) return;
+        // Popup spawn tại world pos, nằm trong board
+        Vector3 spawnPos;
+        if (pos != null)
+            spawnPos = pos.position;
+        else
+            spawnPos = Vector3.zero;
 
-        var obj = Instantiate(damagePopupPrefab, pos.position, Quaternion.identity);
-        var popup = obj.GetComponent<DamagePopup>();
-        if (popup != null)
-            popup.Setup(text, color);
+        DamagePopup.Create(text, color, spawnPos);
     }
     
 }

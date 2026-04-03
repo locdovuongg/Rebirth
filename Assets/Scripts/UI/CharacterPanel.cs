@@ -18,6 +18,15 @@ public class CharacterPanel : MonoBehaviour
     public Image manaFill;
     public Color manaColor = new Color(0.2f, 0.45f, 0.8f);
 
+    [Header("Speed Bar (extra turn)")]
+    public Image speedFill;
+    public Color speedColor = new Color(0.4f, 0.8f, 1f);
+
+    [Header("Ult Bar (ultimate)")]
+    public Image ultFill;
+    public Color ultColor = new Color(1f, 0.5f, 0.1f);
+    public Color ultReadyColor = new Color(1f, 0.9f, 0.3f);
+
     [Header("Text")]
     public TextMeshProUGUI hpText;
     public TextMeshProUGUI shieldText;
@@ -76,6 +85,20 @@ public class CharacterPanel : MonoBehaviour
         // --- Mana ---
         if (manaFill != null)
             manaFill.fillAmount = (float)entity.mana / entity.maxMana;
+
+        // --- Speed (extra turn) ---
+        if (speedFill != null)
+        {
+            speedFill.fillAmount = (float)entity.speed / entity.speedMax;
+            speedFill.color = entity.extraTurnReady ? new Color(1f, 1f, 0.3f) : speedColor;
+        }
+
+        // --- Ult charge ---
+        if (ultFill != null)
+        {
+            ultFill.fillAmount = (float)entity.ultCharge / entity.ultChargeMax;
+            ultFill.color = entity.ultimateReady ? ultReadyColor : ultColor;
+        }
 
         // --- Shield ---
         if (shieldText != null)

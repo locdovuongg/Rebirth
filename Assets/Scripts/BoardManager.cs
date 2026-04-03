@@ -591,10 +591,12 @@ public void StartSwap(Gem a, Gem b)
 
      public Vector2 GridToWorld(int x, int y)
     {
-        // board trung tâm (0,0)
+        // Local offset: board centred at parent origin
         float startX = -(width - 1) / 2f;
         float startY = -(height - 1) / 2f;
-        return new Vector2(startX + x, startY + y);
+        Vector2 local = new Vector2(startX + x, startY + y);
+        // Convert to world (accounts for parent transform offset)
+        return (Vector2)transform.TransformPoint(local);
     }
 
     IEnumerator AnimateMove(Transform t, Vector3 from, Vector3 to, float duration)
