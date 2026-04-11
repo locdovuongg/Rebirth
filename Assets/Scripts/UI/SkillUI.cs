@@ -3,111 +3,131 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// Gắn vào 1 GameObject trong Canvas.
+/// Tự tạo skill buttons khi Start.
+/// Chỉ cần kéo SkillUser vào Inspector.
+/// </summary>
 public class SkillUI : MonoBehaviour
 {
     [Header("References")]
     public SkillUser playerSkills;
-    public Transform buttonContainer;
 
-    [Header("Button Style")]
-    public Sprite buttonBGSprite;
-    public Color normalColor = new Color(0.25f, 0.2f, 0.35f);
-    public Color disabledColor = new Color(0.15f, 0.12f, 0.18f);
-    public Color cooldownColor = new Color(0.5f, 0.15f, 0.15f);
-    public float buttonSize = 120f;
+    [Header("Layout")]
+    public float buttonWidth = 100f;
+    public float buttonHeight = 120f;
+    public float spacing = 8f;
+
+    [Header("Colors")]
+    public Color normalColor = new Color(0.2f, 0.18f, 0.28f);
+    public Color disabledColor = new Color(0.12f, 0.1f, 0.15f);
+    public Color cooldownColor = new Color(0.4f, 0.12f, 0.12f);
+    public Color manaOkColor = new Color(0.5f, 0.75f, 1f);
+    public Color manaLowColor = new Color(1f, 0.3f, 0.3f);
 
     List<SkillSlot> slots = new();
 
-    [System.Obsolete]
     void Start()
     {
         if (playerSkills == null)
             playerSkills = FindFirstObjectByType<SkillUser>();
 
-        if (buttonContainer == null)
-            buttonContainer = transform;
+        if (playerSkills == null)
+        {
+            Debug.LogWarning("[SkillUI] No SkillUser found!");
+            return;
+        }
+
+        // thêm HorizontalLayoutGroup nếu chưa có
+        var layout = GetComponent<HorizontalLayoutGroup>();
+        if (layout == null)
+        {
+            layout = gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = spacing;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = false;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            layout.padding = new RectOffset(10, 10, 5, 5);
+        }
 
         BuildButtons();
     }
 
-    [System.Obsolete]
     void BuildButtons()
     {
-        if (playerSkills == null) return;
-
         for (int i = 0; i < playerSkills.skills.Count; i++)
         {
             Skill skill = playerSkills.skills[i];
             int index = i;
 
-            // --- Button Root ---
+            // ===== Button Root =====
             GameObject btnObj = new GameObject($"Skill_{skill.skillName}");
-            btnObj.transform.SetParent(buttonContainer, false);
+            btnObj.transform.SetParent(transform, false);
 
             var rt = btnObj.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(buttonSize, buttonSize + 30);
+            rt.sizeDelta = new Vector2(buttonWidth, buttonHeight);
 
-            // --- BG ---
             var bgImg = btnObj.AddComponent<Image>();
-            if (buttonBGSprite != null)
-            {
-                bgImg.sprite = buttonBGSprite;
-                bgImg.type = Image.Type.Sliced;
-            }
             bgImg.color = normalColor;
 
             var btn = btnObj.AddComponent<Button>();
             btn.targetGraphic = bgImg;
             btn.onClick.AddListener(() => OnSkillClick(index));
 
-            // --- Icon ---
-            GameObject iconObj = new GameObject("Icon");
-            iconObj.transform.SetParent(btnObj.transform, false);
-
-            var iconRT = iconObj.AddComponent<RectTransform>();
-            iconRT.anchorMin = new Vector2(0.1f, 0.25f);
-            iconRT.anchorMax = new Vector2(0.9f, 0.95f);
-            iconRT.offsetMin = Vector2.zero;
-            iconRT.offsetMax = Vector2.zero;
-
-            var iconImg = iconObj.AddComponent<Image>();
+            // ===== Icon =====
             if (skill.icon != null)
-                iconImg.sprite = skill.icon;
-            else
-                iconImg.color = GetSkillTypeColor(skill.type);
+            {
+                GameObject iconObj = new GameObject("Icon");
+                iconObj.transform.SetParent(btnObj.transform, false);
 
-            // --- Name ---
+                var iconRT = iconObj.AddComponent<RectTransform>();
+                iconRT.anchorMin = new Vector2(0.1f, 0.3f);
+                iconRT.anchorMax = new Vector2(0.9f, 0.95f);
+                iconRT.offsetMin = Vector2.zero;
+                iconRT.offsetMax = Vector2.zero;
+
+                var iconImg = iconObj.AddComponent<Image>();
+                iconImg.sprite = skill.icon;
+                iconImg.preserveAspect = true;
+                iconImg.raycastTarget = false;
+            }
+
+            // ===== Name =====
             GameObject nameObj = new GameObject("Name");
             nameObj.transform.SetParent(btnObj.transform, false);
 
             var nameRT = nameObj.AddComponent<RectTransform>();
             nameRT.anchorMin = new Vector2(0, 0);
-            nameRT.anchorMax = new Vector2(1, 0.22f);
-            nameRT.offsetMin = Vector2.zero;
-            nameRT.offsetMax = Vector2.zero;
+            nameRT.anchorMax = new Vector2(1, 0.28f);
+            nameRT.offsetMin = new Vector2(2, 0);
+            nameRT.offsetMax = new Vector2(-2, 0);
 
             var nameTMP = nameObj.AddComponent<TextMeshProUGUI>();
             nameTMP.text = skill.skillName;
-            nameTMP.fontSize = 14;
+            nameTMP.fontSize = 12;
             nameTMP.alignment = TextAlignmentOptions.Center;
             nameTMP.color = Color.white;
             nameTMP.enableWordWrapping = false;
             nameTMP.overflowMode = TextOverflowModes.Ellipsis;
+            nameTMP.raycastTarget = false;
 
-            // --- Mana Cost (top-right) ---
-            GameObject costObj = new GameObject("ManaCost");
+            // ===== Mana Cost (top-right) =====
+            GameObject costObj = new GameObject("Cost");
             costObj.transform.SetParent(btnObj.transform, false);
 
             var costRT = costObj.AddComponent<RectTransform>();
-            costRT.anchorMin = new Vector2(0.6f, 0.78f);
+            costRT.anchorMin = new Vector2(0.6f, 0.8f);
             costRT.anchorMax = new Vector2(1f, 1f);
             costRT.offsetMin = Vector2.zero;
             costRT.offsetMax = Vector2.zero;
 
             var costBG = costObj.AddComponent<Image>();
-            costBG.color = new Color(0.1f, 0.3f, 0.7f, 0.85f);
+            costBG.color = new Color(0.08f, 0.2f, 0.5f, 0.85f);
+            costBG.raycastTarget = false;
 
-            var costTextObj = new GameObject("CostText");
+            GameObject costTextObj = new GameObject("CostText");
             costTextObj.transform.SetParent(costObj.transform, false);
 
             var costTextRT = costTextObj.AddComponent<RectTransform>();
@@ -118,46 +138,13 @@ public class SkillUI : MonoBehaviour
 
             var costTMP = costTextObj.AddComponent<TextMeshProUGUI>();
             costTMP.text = skill.manaCost.ToString();
-            costTMP.fontSize = 13;
+            costTMP.fontSize = 11;
             costTMP.alignment = TextAlignmentOptions.Center;
-            costTMP.color = new Color(0.6f, 0.85f, 1f);
+            costTMP.color = manaOkColor;
+            costTMP.raycastTarget = false;
 
-            // --- Duration badge (top-left, cho buff/debuff) ---
-            GameObject durObj = new GameObject("Duration");
-            durObj.transform.SetParent(btnObj.transform, false);
-
-            var durRT = durObj.AddComponent<RectTransform>();
-            durRT.anchorMin = new Vector2(0, 0.78f);
-            durRT.anchorMax = new Vector2(0.35f, 1f);
-            durRT.offsetMin = Vector2.zero;
-            durRT.offsetMax = Vector2.zero;
-
-            var durBG = durObj.AddComponent<Image>();
-            durBG.color = new Color(0.6f, 0.4f, 0.1f, 0.85f);
-
-            var durTextObj = new GameObject("DurText");
-            durTextObj.transform.SetParent(durObj.transform, false);
-
-            var durTextRT = durTextObj.AddComponent<RectTransform>();
-            durTextRT.anchorMin = Vector2.zero;
-            durTextRT.anchorMax = Vector2.one;
-            durTextRT.offsetMin = Vector2.zero;
-            durTextRT.offsetMax = Vector2.zero;
-
-            var durTMP = durTextObj.AddComponent<TextMeshProUGUI>();
-            durTMP.text = $"{skill.duration}t";
-            durTMP.fontSize = 11;
-            durTMP.alignment = TextAlignmentOptions.Center;
-            durTMP.color = Color.white;
-
-            bool hasDuration = skill.type == Skill.SkillType.Burn
-                || skill.type == Skill.SkillType.Freeze
-                || skill.type == Skill.SkillType.Poison
-                || skill.type == Skill.SkillType.AttackBuff;
-            durObj.SetActive(hasDuration);
-
-            // --- Cooldown Overlay ---
-            GameObject cdObj = new GameObject("CooldownOverlay");
+            // ===== Cooldown Overlay =====
+            GameObject cdObj = new GameObject("CDOverlay");
             cdObj.transform.SetParent(btnObj.transform, false);
 
             var cdRT = cdObj.AddComponent<RectTransform>();
@@ -167,35 +154,36 @@ public class SkillUI : MonoBehaviour
             cdRT.offsetMax = Vector2.zero;
 
             var cdBG = cdObj.AddComponent<Image>();
-            cdBG.color = new Color(0, 0, 0, 0.65f);
+            cdBG.color = new Color(0, 0, 0, 0.6f);
+            cdBG.raycastTarget = false;
 
-            var cdTextObj = new GameObject("CDText");
+            GameObject cdTextObj = new GameObject("CDText");
             cdTextObj.transform.SetParent(cdObj.transform, false);
 
             var cdTextRT = cdTextObj.AddComponent<RectTransform>();
-            cdTextRT.anchorMin = new Vector2(0.2f, 0.3f);
-            cdTextRT.anchorMax = new Vector2(0.8f, 0.8f);
+            cdTextRT.anchorMin = new Vector2(0.15f, 0.25f);
+            cdTextRT.anchorMax = new Vector2(0.85f, 0.85f);
             cdTextRT.offsetMin = Vector2.zero;
             cdTextRT.offsetMax = Vector2.zero;
 
             var cdTMP = cdTextObj.AddComponent<TextMeshProUGUI>();
-            cdTMP.text = "2";
-            cdTMP.fontSize = 36;
+            cdTMP.text = "";
+            cdTMP.fontSize = 30;
             cdTMP.alignment = TextAlignmentOptions.Center;
-            cdTMP.color = Color.white;
             cdTMP.fontStyle = FontStyles.Bold;
+            cdTMP.color = Color.white;
+            cdTMP.raycastTarget = false;
 
             cdObj.SetActive(false);
 
-            // --- Store ---
+            // ===== Store =====
             slots.Add(new SkillSlot
             {
                 skill = skill,
                 button = btn,
                 bgImage = bgImg,
-                iconImage = iconImg,
-                cooldownOverlay = cdObj,
-                cooldownText = cdTMP,
+                cdOverlay = cdObj,
+                cdText = cdTMP,
                 costText = costTMP
             });
         }
@@ -211,7 +199,6 @@ public class SkillUI : MonoBehaviour
         foreach (var slot in slots)
         {
             bool canUse = isPlayerTurn && slot.skill.CanUse(player);
-
             slot.button.interactable = canUse;
 
             // bg color
@@ -222,27 +209,21 @@ public class SkillUI : MonoBehaviour
             else
                 slot.bgImage.color = normalColor;
 
-            // icon dim
-            slot.iconImage.color = canUse ? Color.white : new Color(0.4f, 0.4f, 0.4f);
-
             // cooldown overlay
             if (slot.skill.currentCooldown > 0)
             {
-                slot.cooldownOverlay.SetActive(true);
-                slot.cooldownText.text = slot.skill.currentCooldown.ToString();
+                slot.cdOverlay.SetActive(true);
+                slot.cdText.text = slot.skill.currentCooldown.ToString();
             }
             else
             {
-                slot.cooldownOverlay.SetActive(false);
+                slot.cdOverlay.SetActive(false);
             }
 
             // mana cost color
-            if (slot.costText != null)
-            {
-                slot.costText.color = player.mana >= slot.skill.manaCost
-                    ? new Color(0.6f, 0.85f, 1f)
-                    : new Color(1f, 0.3f, 0.3f);
-            }
+            slot.costText.color = player.mana >= slot.skill.manaCost
+                ? manaOkColor
+                : manaLowColor;
         }
     }
 
@@ -257,74 +238,53 @@ public class SkillUI : MonoBehaviour
         if (!skill.CanUse(bm.player)) return;
 
         // chọn target
+        BattleEntity caster = bm.player;
         BattleEntity target = skill.TargetsSelf() ? bm.player : bm.enemy;
 
-        bool success = skill.Execute(bm.player, target);
+        bool success = skill.Execute(caster, target);
 
-        if (success)
-        {
-            ShowSkillPopup(skill, bm);
-        }
-    }
+        if (!success) return;
 
-    void ShowSkillPopup(Skill skill, BattleManager bm)
-    {
+        // popup
+        Transform popSelf = bm.popupPlayer;
+        Transform popEnemy = bm.popupEnemy;
+
         switch (skill.type)
         {
             case Skill.SkillType.Damage:
-                bm.SpawnPopup($"-{skill.value}", Color.red, bm.popupEnemy);
+                bm.SpawnPopup($"-{skill.value}", Color.red, popEnemy);
                 break;
-
             case Skill.SkillType.Burn:
-                bm.SpawnPopup($"BURN {skill.duration}t", new Color(1f, 0.4f, 0.1f), bm.popupEnemy);
+                bm.SpawnPopup($"BURN {skill.duration}t", new Color(1f, 0.4f, 0.1f), popEnemy);
                 break;
-
             case Skill.SkillType.Freeze:
-                bm.SpawnPopup($"FREEZE {skill.duration}t", new Color(0.3f, 0.7f, 1f), bm.popupEnemy);
+                bm.SpawnPopup($"FREEZE {skill.duration}t", new Color(0.3f, 0.7f, 1f), popEnemy);
                 break;
-
             case Skill.SkillType.Poison:
-                bm.SpawnPopup($"POISON {skill.duration}t", new Color(0.4f, 0.9f, 0.2f), bm.popupEnemy);
+                bm.SpawnPopup($"POISON {skill.duration}t", new Color(0.4f, 0.9f, 0.2f), popEnemy);
                 break;
-
             case Skill.SkillType.Heal:
-                bm.SpawnPopup($"+{skill.value} HP", Color.green, bm.popupPlayer);
+                bm.SpawnPopup($"+{skill.value} HP", Color.green, popSelf);
                 break;
-
             case Skill.SkillType.Shield:
-                bm.SpawnPopup($"+{skill.value} SHD", new Color(0.5f, 0.7f, 1f), bm.popupPlayer);
+                bm.SpawnPopup($"+{skill.value} SHD", new Color(0.5f, 0.7f, 1f), popSelf);
                 break;
-
             case Skill.SkillType.AttackBuff:
-                bm.SpawnPopup($"ATK +{(int)((skill.buffMultiplier - 1f) * 100)}%", new Color(1f, 0.8f, 0.2f), bm.popupPlayer);
+                int pct = (int)((skill.buffMultiplier - 1f) * 100);
+                bm.SpawnPopup($"ATK +{pct}%", new Color(1f, 0.8f, 0.2f), popSelf);
                 break;
-
             case Skill.SkillType.SpeedBuff:
-                bm.SpawnPopup($"+{skill.value} SPD", new Color(0.9f, 0.9f, 0.3f), bm.popupPlayer);
+                bm.SpawnPopup($"+{skill.value} SPD", new Color(0.9f, 0.9f, 0.3f), popSelf);
                 break;
-
             case Skill.SkillType.DamageAndHeal:
-                bm.SpawnPopup($"-{skill.value}", Color.magenta, bm.popupEnemy);
-                bm.SpawnPopup($"+{skill.value / 2} HP", Color.green, bm.popupPlayer);
+                bm.SpawnPopup($"-{skill.value}", Color.magenta, popEnemy);
+                bm.SpawnPopup($"+{skill.value / 2} HP", Color.green, popSelf);
                 break;
         }
-    }
 
-    Color GetSkillTypeColor(Skill.SkillType type)
-    {
-        return type switch
-        {
-            Skill.SkillType.Damage => new Color(0.85f, 0.2f, 0.15f),
-            Skill.SkillType.Burn => new Color(1f, 0.5f, 0.1f),
-            Skill.SkillType.Freeze => new Color(0.3f, 0.65f, 1f),
-            Skill.SkillType.Poison => new Color(0.35f, 0.8f, 0.2f),
-            Skill.SkillType.Heal => new Color(0.2f, 0.8f, 0.3f),
-            Skill.SkillType.Shield => new Color(0.4f, 0.6f, 0.9f),
-            Skill.SkillType.AttackBuff => new Color(0.9f, 0.7f, 0.15f),
-            Skill.SkillType.SpeedBuff => new Color(0.85f, 0.85f, 0.2f),
-            Skill.SkillType.DamageAndHeal => new Color(0.8f, 0.2f, 0.6f),
-            _ => Color.gray
-        };
+        // check enemy die
+        if (bm.enemy.IsDead)
+            Debug.Log("PLAYER WIN by skill!");
     }
 
     class SkillSlot
@@ -332,9 +292,8 @@ public class SkillUI : MonoBehaviour
         public Skill skill;
         public Button button;
         public Image bgImage;
-        public Image iconImage;
-        public GameObject cooldownOverlay;
-        public TextMeshProUGUI cooldownText;
+        public GameObject cdOverlay;
+        public TextMeshProUGUI cdText;
         public TextMeshProUGUI costText;
     }
 }

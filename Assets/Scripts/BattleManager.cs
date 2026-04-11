@@ -38,9 +38,51 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
+        // Load từ GameData nếu có (từ màn chọn nhân vật)
+        ApplyCharacterData();
+
         // đảm bảo HP đầy khi bắt đầu
         player.currentHP = player.maxHP;
         enemy.currentHP = enemy.maxHP;
+    }
+
+    void ApplyCharacterData()
+    {
+        if (GameData.Instance == null) return;
+
+        // --- PLAYER ---
+        CharacterInfo pc = GameData.Instance.selectedCharacter;
+        if (pc != null)
+        {
+            player.maxHP = pc.maxHP;
+            player.maxMana = pc.maxMana;
+            player.speedMax = pc.speedMax;
+            player.ultChargeMax = pc.ultChargeMax;
+            swordDamage = pc.swordDamage;
+            ultimateDamage = pc.ultimateDamage;
+
+            // Set avatar trên UI
+            if (BattleUI.Instance != null && BattleUI.Instance.playerAvatar != null && pc.avatar != null)
+                BattleUI.Instance.playerAvatar.sprite = pc.avatar;
+
+            // Set skills
+            SkillUser su = FindFirstObjectByType<SkillUser>();
+            if (su != null && pc.skills != null && pc.skills.Length > 0)
+                su.skills = new List<Skill>(pc.skills);
+        }
+
+        // --- ENEMY ---
+        CharacterInfo ec = GameData.Instance.selectedEnemy;
+        if (ec != null)
+        {
+            enemy.maxHP = ec.maxHP;
+            enemy.maxMana = ec.maxMana;
+            enemy.speedMax = ec.speedMax;
+            enemy.ultChargeMax = ec.ultChargeMax;
+
+            if (BattleUI.Instance != null && BattleUI.Instance.enemyAvatar != null && ec.avatar != null)
+                BattleUI.Instance.enemyAvatar.sprite = ec.avatar;
+        }
     }
 
     // ================= MATCH =================
@@ -51,12 +93,8 @@ public class BattleManager : MonoBehaviour
         if (isBattleOver) return;
 
         // --- hiện combo ---
-        if (combo > 1)
-        {
-            BattleHUD hud = FindFirstObjectByType<BattleHUD>();
-            if (hud != null)
-                hud.ShowCombo(combo);
-        }
+        if (combo > 1 && BattleUI.Instance != null)
+            BattleUI.Instance.ShowCombo(combo);
 
         // ...existing code... (counter + ApplyEffect)
         Dictionary<GemType, int> counter = new();

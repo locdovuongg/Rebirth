@@ -83,12 +83,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 6724591298119191755, guid: 1f9625b6f85320743b73d2f980079919, type: 3}
+  m_Sprite: {fileID: -205270267638800340, guid: 1f9625b6f85320743b73d2f980079919, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.79296875, y: 0.7421875}
+  m_Size: {x: 0.8984375, y: 0.84375}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -131,8 +131,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.79296875, y: 0.7421875}
-    newSize: {x: 0.79296875, y: 0.7421875}
+    oldSize: {x: 0.8984375, y: 0.84375}
+    newSize: {x: 0.8984375, y: 0.84375}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -153,3 +153,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gem
   x: 0
   y: 0
+  gemType: 0

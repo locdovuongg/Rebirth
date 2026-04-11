@@ -119,6 +119,41 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &56353410
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 56353411}
+  m_Layer: 5
+  m_Name: PlayerPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &56353411
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 56353410}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1686697436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &182092238
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,7 +606,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &930588147
+--- !u!1 &734713032
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -579,24 +614,121 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 930588148}
-  m_Layer: 0
-  m_Name: SkillArea
+  - component: {fileID: 734713033}
+  - component: {fileID: 734713034}
+  m_Layer: 5
+  m_Name: BattleUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &930588148
+--- !u!224 &734713033
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734713032}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1686697436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &734713034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734713032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c4b6378879390b41ad8068c55081fbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattleUI
+  playerHPBar: {fileID: 0}
+  playerManaBar: {fileID: 0}
+  playerSpeedBar: {fileID: 0}
+  playerUltBar: {fileID: 0}
+  playerAvatar: {fileID: 0}
+  playerHPText: {fileID: 0}
+  playerManaText: {fileID: 0}
+  playerShieldText: {fileID: 0}
+  enemyHPBar: {fileID: 0}
+  enemyManaBar: {fileID: 0}
+  enemySpeedBar: {fileID: 0}
+  enemyUltBar: {fileID: 0}
+  enemyAvatar: {fileID: 0}
+  enemyHPText: {fileID: 0}
+  enemyManaText: {fileID: 0}
+  enemyShieldText: {fileID: 0}
+  turnText: {fileID: 0}
+  playerTurnGlow: {fileID: 0}
+  enemyTurnGlow: {fileID: 0}
+  ultButton: {fileID: 0}
+  ultButtonText: {fileID: 0}
+  resultPanel: {fileID: 0}
+  resultText: {fileID: 0}
+  resultButton: {fileID: 0}
+  comboText: {fileID: 0}
+  hpHigh: {r: 0.2, g: 0.75, b: 0.2, a: 1}
+  hpMid: {r: 0.85, g: 0.75, b: 0.1, a: 1}
+  hpLow: {r: 0.85, g: 0.15, b: 0.15, a: 1}
+--- !u!1 &1241209799
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1241209801}
+  - component: {fileID: 1241209800}
+  m_Layer: 0
+  m_Name: PlayerSkill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1241209800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241209799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4101e2126c3bba740ba04fdb45b6909d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillUser
+  skills:
+  - {fileID: 11400000, guid: c3fb19aa427b998438ec02179895ec1f, type: 2}
+  - {fileID: 11400000, guid: ea377d3ca4ae76549876afc34dd9d66a, type: 2}
+  - {fileID: 11400000, guid: 7b58f2c56f186de4ea20018890ef5181, type: 2}
+  - {fileID: 11400000, guid: 00655f605ba3b0b489f8c4970ba6060f, type: 2}
+  - {fileID: 11400000, guid: 2394ace0da4a33448b56331bc9ef57c3, type: 2}
+  - {fileID: 11400000, guid: cb4cd38f415d0e24eba94a6fd5cfe354, type: 2}
+  - {fileID: 11400000, guid: bd92987c2cd503c469c1cc7b0c8ff71e, type: 2}
+--- !u!4 &1241209801
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 930588147}
+  m_GameObject: {fileID: 1241209799}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.95253, y: -0.50491, z: 0}
+  m_LocalPosition: {x: 188.67151, y: 863.0363, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -751,25 +883,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df8b5a01717e4da4392b653175fdbdf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIBuilder
-  playerSkillUser: {fileID: 0}
-  skillButtonSprite: {fileID: 0}
-  boardFrameSprite: {fileID: 0}
-  panelBGSprite: {fileID: 0}
-  avatarBorderSprite: {fileID: 0}
-  barBGSprite: {fileID: 0}
-  barFillSprite: {fileID: 0}
-  glowSprite: {fileID: 0}
-  topDecoSprite: {fileID: 0}
-  playerAvatarSprite: {fileID: 0}
-  enemyAvatarSprite: {fileID: 0}
-  buttonSprite: {fileID: 0}
-  bgColor: {r: 0.75825274, g: 0.7533375, b: 0.764151, a: 1}
-  frameColor: {r: 1, g: 0.09759988, b: 0, a: 1}
-  hpColor: {r: 0.2, g: 0.72, b: 0.2, a: 1}
-  manaColor: {r: 0.2, g: 0.4, b: 0.82, a: 1}
-  barBGColor: {r: 1, g: 0.7688679, b: 0.7688679, a: 1}
-  borderGold: {r: 0.85, g: 0.7, b: 0.2, a: 1}
-  turnGlowColor: {r: 1, g: 0.9, b: 0.3, a: 0.7}
 --- !u!4 &1662257809
 Transform:
   m_ObjectHideFlags: 0
@@ -785,6 +898,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1677740208
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1677740209}
+  - component: {fileID: 1677740210}
+  m_Layer: 5
+  m_Name: SkillPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1677740209
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1677740208}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1686697436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 100}
+  m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &1677740210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1677740208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1186e239f85854f408dbb91d21ad2f33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillUI
+  playerSkills: {fileID: 1241209800}
+  buttonWidth: 100
+  buttonHeight: 120
+  spacing: 8
+  normalColor: {r: 0.25, g: 0.2, b: 0.35, a: 1}
+  disabledColor: {r: 0.15, g: 0.12, b: 0.18, a: 1}
+  cooldownColor: {r: 0.5, g: 0.15, b: 0.15, a: 1}
+  manaOkColor: {r: 0.5, g: 0.75, b: 1, a: 1}
+  manaLowColor: {r: 1, g: 0.3, b: 0.3, a: 1}
 --- !u!1 &1686697432
 GameObject:
   m_ObjectHideFlags: 0
@@ -880,6 +1050,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1614379885}
+  - {fileID: 1677740209}
+  - {fileID: 734713033}
+  - {fileID: 56353411}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1280,7 +1453,7 @@ SceneRoots:
   - {fileID: 1821117250}
   - {fileID: 1825578827}
   - {fileID: 1656921413}
-  - {fileID: 930588148}
   - {fileID: 1686697436}
   - {fileID: 182092241}
   - {fileID: 1662257809}
+  - {fileID: 1241209801}
