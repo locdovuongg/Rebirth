@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a441adc866368a242a69af3bffc58e4e, type: 3}
+  m_Name: Male
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterInfo
+  characterName: Hero
+  avatar: {fileID: 3196780724696114178, guid: c6ecd1619e830ba43aa7856bef14af84, type: 3}
+  portrait: {fileID: -5912479471324642444, guid: 069b39c627ce3244e8a635bac3764c00, type: 3}
+  maxHP: 100
+  maxMana: 20
+  speedMax: 5
+  ultChargeMax: 10
+  swordDamage: 10
+  ultimateDamage: 40
+  skills:
+  - {fileID: 11400000, guid: ea377d3ca4ae76549876afc34dd9d66a, type: 2}
