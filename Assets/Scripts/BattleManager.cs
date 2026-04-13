@@ -38,12 +38,65 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
-        // Load từ GameData nếu có (từ màn chọn nhân vật)
+        // Load player từ GameData (từ màn chọn nhân vật)
         ApplyCharacterData();
+
+        // Load enemy từ GameManager (từ map select)
+        ApplyEnemyFromMap();
 
         // đảm bảo HP đầy khi bắt đầu
         player.currentHP = player.maxHP;
-        enemy.currentHP = enemy.maxHP;
+        player.mana = 0;
+        player.shield = 0;
+        player.speed = 0;
+        player.ultCharge = 0;
+        player.extraTurnReady = false;
+        player.ultimateReady = false;
+
+        StartTurn();
+    }
+
+    /// <summary>
+    /// Load enemy data từ GameManager (map select → battle)
+    /// </summary>
+    void ApplyEnemyFromMap()
+    {
+        if (GameManager.Instance == null) return;
+        if (GameManager.Instance.currentChapter == null) return;
+
+        var gm = GameManager.Instance;
+        if (gm.currentLevelIndex < 0 || gm.currentLevelIndex >= gm.currentChapter.enemies.Length)
+        {
+            Debug.LogError($"[BattleManager] Invalid levelIndex: {gm.currentLevelIndex}");
+            return;
+        }
+
+        EnemyData data = gm.currentChapter.enemies[gm.currentLevelIndex];
+        if (data == null) return;
+
+        enemy = new BattleEntity
+        {
+            maxHP = data.maxHP,
+            currentHP = data.maxHP,
+            maxMana = data.maxMana,
+            mana = 0,
+            speedMax = data.speedMax,
+            ultChargeMax = data.ultChargeMax,
+            shield = 0,
+            speed = 0,
+            ultCharge = 0,
+            extraTurnReady = false,
+            ultimateReady = false
+        };
+
+        // Set enemy avatar trên UI
+        if (BattleUI.Instance != null && BattleUI.Instance.enemyAvatar != null && data.avatar != null)
+            BattleUI.Instance.enemyAvatar.sprite = data.avatar;
+
+        // Ghi đè damage values cho boss nếu cần
+        // (enemy dùng swordDamage/ultimateDamage riêng nếu muốn, hiện tại dùng chung)
+
+        Debug.Log($"[BattleManager] Enemy loaded: {data.enemyName} HP={data.maxHP} Boss={data.isBoss}");
     }
 
     void ApplyCharacterData()
@@ -219,6 +272,10 @@ public class BattleManager : MonoBehaviour
             string result = playerWon ? "PLAYER WIN!" : "PLAYER LOSE!";
             Debug.Log(result);
             Debug.Log($"[Diamond] Player: {playerDiamondCollected} | Enemy: {enemyDiamondCollected}");
+
+            // Unlock level tiếp theo nếu player thắng
+            if (playerWon && GameManager.Instance != null)
+                GameManager.Instance.OnBattleWon();
 
             // TODO: lưu kim cương vào save data / trao thưởng
             // Ví dụ: PlayerData.diamonds += playerDiamondCollected;

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5505d0474394246ae8e18543e7c249, type: 3}
+  m_Name: Orge
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: "Orge \u0111\u1ECBa ng\u1EE5c"
+  avatar: {fileID: -4753886741560322309, guid: 2e30f3e6ca991c5408a55bdf3be63d9a, type: 3}
+  maxHP: 120
+  maxMana: 50
+  speedMax: 5
+  ultChargeMax: 10
+  swordDamage: 10
+  ultimateDamage: 40
+  isBoss: 1

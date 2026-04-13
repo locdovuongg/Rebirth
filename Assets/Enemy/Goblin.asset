@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5505d0474394246ae8e18543e7c249, type: 3}
+  m_Name: Goblin
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Goblin
+  avatar: {fileID: 2572365745140355499, guid: 3263c770adb114e4797c98ec4c0afd74, type: 3}
+  maxHP: 80
+  maxMana: 50
+  speedMax: 8
+  ultChargeMax: 30
+  swordDamage: 5
+  ultimateDamage: 20
+  isBoss: 0

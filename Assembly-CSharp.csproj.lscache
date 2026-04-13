@@ -71,6 +71,12 @@ Assets/Scripts/
   SceneFader.cs
   UIButtonAnimation.cs
   UIFadeIn.cs
+ MapSelect/
+  ChapterData.cs
+  EnemyData.cs
+  GameManager.cs
+  MapNode.cs
+  VerticalMapManager.cs
  OrientationManager.cs
  SafeArea.cs
  Skill.cs

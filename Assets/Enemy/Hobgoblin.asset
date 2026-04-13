@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5505d0474394246ae8e18543e7c249, type: 3}
+  m_Name: Hobgoblin
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Hobgoblin tinh anh
+  avatar: {fileID: 1734964526530862199, guid: 1c8960e986748f04e812ed9588e1d2db, type: 3}
+  maxHP: 100
+  maxMana: 50
+  speedMax: 5
+  ultChargeMax: 15
+  swordDamage: 7
+  ultimateDamage: 40
+  isBoss: 0
