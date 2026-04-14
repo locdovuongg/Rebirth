@@ -52,7 +52,32 @@ public class SkillUI : MonoBehaviour
             layout.padding = new RectOffset(10, 10, 5, 5);
         }
 
-        BuildButtons();
+        // Delay build để đợi BattleManager load skills xong
+        Invoke(nameof(DelayedBuild), 0.1f);
+    }
+
+    void DelayedBuild()
+    {
+        // Xóa buttons cũ nếu có
+        foreach (var slot in slots)
+        {
+            if (slot.button != null)
+                Destroy(slot.button.gameObject);
+        }
+        slots.Clear();
+
+        if (playerSkills != null && playerSkills.skills.Count > 0)
+            BuildButtons();
+        else
+            Debug.LogWarning("[SkillUI] No skills to build buttons for!");
+    }
+
+    /// <summary>
+    /// Gọi từ bên ngoài nếu skills thay đổi runtime
+    /// </summary>
+    public void RebuildSkillButtons()
+    {
+        DelayedBuild();
     }
 
     void BuildButtons()
@@ -109,7 +134,7 @@ public class SkillUI : MonoBehaviour
             nameTMP.fontSize = 12;
             nameTMP.alignment = TextAlignmentOptions.Center;
             nameTMP.color = Color.white;
-            nameTMP.enableWordWrapping = false;
+            nameTMP.textWrappingMode = TextWrappingModes.NoWrap;
             nameTMP.overflowMode = TextOverflowModes.Ellipsis;
             nameTMP.raycastTarget = false;
 
@@ -231,6 +256,7 @@ public class SkillUI : MonoBehaviour
     {
         if (BattleManager.Instance == null) return;
         if (!BattleManager.Instance.playerTurn) return;
+        if (index < 0 || index >= playerSkills.skills.Count) return;
 
         var bm = BattleManager.Instance;
         Skill skill = playerSkills.skills[index];

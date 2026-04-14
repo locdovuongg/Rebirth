@@ -25,8 +25,8 @@ public class CharacterSelectUI : MonoBehaviour
     [Header("Prefab nút chọn nhân vật")]
     public GameObject characterButtonPrefab;
 
-    [Header("Battle Scene name")]
-    public string battleSceneName = "BattleScene";
+    [Header("Scene tiếp theo")]
+    public string nextSceneName = "MapSelect";
 
     [Header("Enemy (mặc định)")]
     public CharacterInfo defaultEnemy;
@@ -219,6 +219,6 @@ public class CharacterSelectUI : MonoBehaviour
         GameData.Instance.selectedCharacter = characters[selectedIndex];
         GameData.Instance.selectedEnemy = defaultEnemy;
 
-        SceneManager.LoadScene(battleSceneName);
+        SceneManager.LoadScene(nextSceneName);
     }
 }

@@ -9,9 +9,13 @@ public class BattleManager : MonoBehaviour
     public BattleEntity player = new();
     public BattleEntity enemy = new();
 
-    [Header("Damage Values")]
+    [Header("Player Damage Values")]
     public int swordDamage = 10;
     public int ultimateDamage = 40;
+
+    [Header("Enemy Damage Values")]
+    public int enemySwordDamage = 10;
+    public int enemyUltimateDamage = 40;
 
     [Header("Ult Charge")]
     [Tooltip("Mỗi gem Fire cộng bao nhiêu điểm speed/ult")]
@@ -93,10 +97,11 @@ public class BattleManager : MonoBehaviour
         if (BattleUI.Instance != null && BattleUI.Instance.enemyAvatar != null && data.avatar != null)
             BattleUI.Instance.enemyAvatar.sprite = data.avatar;
 
-        // Ghi đè damage values cho boss nếu cần
-        // (enemy dùng swordDamage/ultimateDamage riêng nếu muốn, hiện tại dùng chung)
+        // Set enemy damage riêng
+        enemySwordDamage = data.swordDamage;
+        enemyUltimateDamage = data.ultimateDamage;
 
-        Debug.Log($"[BattleManager] Enemy loaded: {data.enemyName} HP={data.maxHP} Boss={data.isBoss}");
+        Debug.Log($"[BattleManager] Enemy loaded: {data.enemyName} HP={data.maxHP} ATK={data.swordDamage} ULT={data.ultimateDamage} Boss={data.isBoss}");
     }
 
     void ApplyCharacterData()
@@ -125,13 +130,17 @@ public class BattleManager : MonoBehaviour
         }
 
         // --- ENEMY ---
+        // Enemy giờ được load từ ApplyEnemyFromMap() (MapSelect)
+        // Chỉ set avatar từ GameData nếu chưa có từ MapSelect
         CharacterInfo ec = GameData.Instance.selectedEnemy;
-        if (ec != null)
+        if (ec != null && GameManager.Instance == null)
         {
             enemy.maxHP = ec.maxHP;
             enemy.maxMana = ec.maxMana;
             enemy.speedMax = ec.speedMax;
             enemy.ultChargeMax = ec.ultChargeMax;
+            enemySwordDamage = ec.swordDamage;
+            enemyUltimateDamage = ec.ultimateDamage;
 
             if (BattleUI.Instance != null && BattleUI.Instance.enemyAvatar != null && ec.avatar != null)
                 BattleUI.Instance.enemyAvatar.sprite = ec.avatar;
@@ -180,7 +189,8 @@ public class BattleManager : MonoBehaviour
         switch (type)
         {
             case GemType.Sword:
-                int swordDmg = (int)(count * swordDamage * mul * self.attackMultiplier);
+                int baseSword = playerTurn ? swordDamage : enemySwordDamage;
+                int swordDmg = (int)(count * baseSword * mul * self.attackMultiplier);
                 DealDamage(swordDmg);
                 break;
 
@@ -292,7 +302,8 @@ public class BattleManager : MonoBehaviour
         Current().ultimateReady = false;
         Current().ultCharge = 0;
 
-        DealDamage(ultimateDamage);
+        int ultDmg = playerTurn ? ultimateDamage : enemyUltimateDamage;
+        DealDamage(ultDmg);
         SpawnPopup("ULTIMATE!", Color.yellow, playerTurn ? popupEnemy : popupPlayer);
     }
 
