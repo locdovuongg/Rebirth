@@ -312,6 +312,10 @@ public class BattleManager : MonoBehaviour
     {
         BattleEntity current = playerTurn ? player : enemy;
 
+        // Reset turn timer
+        if (BattleUI.Instance != null)
+            BattleUI.Instance.ResetTurnTimer();
+
         // tick status effects
         StatusTickResult result = current.TickAllStatus();
 
@@ -399,6 +403,10 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator EnemyTurn()
     {
+        // Pause timer khi enemy đang hành động (AI tự chơi)
+        if (BattleUI.Instance != null)
+            BattleUI.Instance.PauseTurnTimer();
+
         yield return new WaitForSeconds(0.5f);
 
         if (isBattleOver) yield break;

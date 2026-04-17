@@ -145,6 +145,10 @@ public void StartSwap(Gem a, Gem b)
 
         busy = true;
 
+        // Pause timer khi đang resolve
+        if (BattleUI.Instance != null)
+            BattleUI.Instance.PauseTurnTimer();
+
         // reset hint khi player bắt đầu swap
         HintSystem hint = FindFirstObjectByType<HintSystem>();
         if (hint != null) hint.ResetTimer();

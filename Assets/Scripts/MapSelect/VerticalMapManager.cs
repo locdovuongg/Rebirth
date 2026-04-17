@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class VerticalMapManager : MonoBehaviour
 {
@@ -7,15 +8,17 @@ public class VerticalMapManager : MonoBehaviour
     [Header("UI")]
     public GameObject nodePrefab;
     public RectTransform content;
+    public RectTransform viewport;          // kéo Viewport vào đây
 
     [Header("Layout")]
-    public float spacingY = 220f;
     public float offsetX = 140f;
+    public float topPadding = 100f;
+    public float bottomPadding = 100f;
 
     void Start()
     {
+        Canvas.ForceUpdateCanvases();
         GenerateMap();
-        FocusCurrentLevel();
     }
 
     void GenerateMap()
@@ -26,46 +29,44 @@ public class VerticalMapManager : MonoBehaviour
 
         int total = chapter.enemies.Length;
 
+        // Lấy chiều cao Content đã set sẵn trong Editor — KHÔNG thay đổi sizeDelta
+        float contentHeight = content.rect.height;
+        if (contentHeight <= 0f)
+            contentHeight = viewport != null ? viewport.rect.height : 1920f;
+
+        // Khoảng cách giữa các node, nằm gọn trong content
+        float usableHeight = contentHeight - topPadding - bottomPadding;
+        float spacingY = total > 1 ? usableHeight / (total - 1) : 0f;
+
         for (int i = 0; i < total; i++)
         {
             GameObject obj = Instantiate(nodePrefab, content);
 
             RectTransform rt = obj.GetComponent<RectTransform>();
 
+            // Anchor ở top-center của content
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+
             // zigzag trái phải
             float x = (i % 2 == 0) ? -offsetX : offsetX;
 
-            // Từ dưới lên: node 0 ở dưới cùng, node cuối ở trên
-            float y = i * spacingY;
+            // Node 0 ở đáy, node cuối ở đỉnh
+            // Từ top anchor: y âm = đi xuống
+            float y = -(topPadding + (total - 1 - i) * spacingY);
 
             rt.anchoredPosition = new Vector2(x, y);
 
             MapNode node = obj.GetComponent<MapNode>();
 
-            bool isUnlocked = i <= unlocked;
+            // 0 = ẩn, 1 = hiện + click được
+            int state = (i <= unlocked) ? 1 : 0;
 
-            node.Setup(i, chapter, isUnlocked);
+            node.Setup(i, chapter, state);
         }
 
-        // set chiều cao content để scroll được
-        float height = total * spacingY;
-        content.sizeDelta = new Vector2(content.sizeDelta.x, height);
-
-        // Đặt pivot/anchor của content ở dưới cùng
-        content.pivot = new Vector2(0.5f, 0);
-        content.anchorMin = new Vector2(0.5f, 0);
-        content.anchorMax = new Vector2(0.5f, 0);
-    }
-
-    void FocusCurrentLevel()
-    {
-        int unlocked = GameManager.Instance != null
-            ? GameManager.Instance.UnlockedLevel
-            : PlayerPrefs.GetInt("level_unlock", 0);
-
-        // Scroll lên tới level hiện tại
-        float targetY = unlocked * spacingY;
-
-        content.anchoredPosition = new Vector2(0, -targetY);
+        // Scroll về đáy (thấy node đầu tiên)
+        content.anchoredPosition = Vector2.zero;
     }
 }

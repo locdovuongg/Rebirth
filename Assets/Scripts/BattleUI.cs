@@ -31,8 +31,15 @@ public class BattleUI : MonoBehaviour
 
     [Header("=== TURN ===")]
     public TextMeshProUGUI turnText;
-    public GameObject playerTurnGlow;
-    public GameObject enemyTurnGlow;
+    [Tooltip("Image dạng Filled-Radial360 quanh avatar Player")]
+    public Image playerTurnTimer;
+    [Tooltip("Image dạng Filled-Radial360 quanh avatar Enemy")]
+    public Image enemyTurnTimer;
+
+    [Header("=== TURN TIMER ===")]
+    public float turnTimeLimit = 30f;
+    float turnTimer;
+    bool timerRunning;
 
     [Header("=== ULT BUTTON ===")]
     public Button ultButton;
@@ -48,6 +55,8 @@ public class BattleUI : MonoBehaviour
     float comboTimer;
 
     [Header("=== BAR COLORS ===")]
+    [Tooltip("Bật nếu muốn HP bar đổi màu theo tỉ lệ máu")]
+    public bool useHPColorChange = false;
     public Color hpHigh = new Color(0.2f, 0.75f, 0.2f);
     public Color hpMid = new Color(0.85f, 0.75f, 0.1f);
     public Color hpLow = new Color(0.85f, 0.15f, 0.15f);
@@ -104,10 +113,51 @@ public class BattleUI : MonoBehaviour
                 : new Color(1f, 0.35f, 0.3f);
         }
 
-        if (playerTurnGlow != null)
-            playerTurnGlow.SetActive(isPlayerTurn);
-        if (enemyTurnGlow != null)
-            enemyTurnGlow.SetActive(!isPlayerTurn);
+        if (playerTurnTimer != null)
+        {
+            playerTurnTimer.gameObject.SetActive(isPlayerTurn);
+            if (isPlayerTurn)
+                playerTurnTimer.fillAmount = turnTimer / turnTimeLimit;
+        }
+        if (enemyTurnTimer != null)
+        {
+            enemyTurnTimer.gameObject.SetActive(!isPlayerTurn);
+            if (!isPlayerTurn)
+                enemyTurnTimer.fillAmount = turnTimer / turnTimeLimit;
+        }
+
+        // ========== TURN TIMER COUNTDOWN ==========
+        if (timerRunning && !gameEnded)
+        {
+            turnTimer -= Time.deltaTime;
+
+            // Đổi màu khi sắp hết giờ
+            Image activeTimer = isPlayerTurn ? playerTurnTimer : enemyTurnTimer;
+            if (activeTimer != null)
+            {
+                float ratio = turnTimer / turnTimeLimit;
+                if (ratio <= 0.2f)
+                    activeTimer.color = new Color(1f, 0.15f, 0.15f);   // đỏ
+                else if (ratio <= 0.5f)
+                    activeTimer.color = new Color(1f, 0.75f, 0.1f);    // vàng
+                else
+                    activeTimer.color = new Color(0.3f, 1f, 0.5f);     // xanh
+            }
+
+            // Hết giờ → mất lượt
+            if (turnTimer <= 0f)
+            {
+                turnTimer = 0f;
+                timerRunning = false;
+
+                if (isPlayerTurn)
+                {
+                    bm.SpawnPopup("TIME OUT!", new Color(1f, 0.3f, 0.3f), bm.popupPlayer);
+                }
+
+                bm.EndTurn();
+            }
+        }
 
         // ========== ULT BUTTON ==========
         if (ultButton != null)
@@ -155,9 +205,12 @@ public class BattleUI : MonoBehaviour
             float hpRatio = (float)e.currentHP / e.maxHP;
             hpBar.fillAmount = hpRatio;
 
-            if (hpRatio <= 0.25f) hpBar.color = hpLow;
-            else if (hpRatio <= 0.5f) hpBar.color = hpMid;
-            else hpBar.color = hpHigh;
+            if (useHPColorChange)
+            {
+                if (hpRatio <= 0.25f) hpBar.color = hpLow;
+                else if (hpRatio <= 0.5f) hpBar.color = hpMid;
+                else hpBar.color = hpHigh;
+            }
         }
 
         if (hpText != null)
@@ -191,6 +244,35 @@ public class BattleUI : MonoBehaviour
                 shieldText.gameObject.SetActive(false);
             }
         }
+    }
+
+    // =====================================================
+    //                  TURN TIMER
+    // =====================================================
+
+    /// <summary>
+    /// Gọi khi bắt đầu lượt mới — reset đồng hồ về 30s
+    /// </summary>
+    public void ResetTurnTimer()
+    {
+        turnTimer = turnTimeLimit;
+        timerRunning = true;
+    }
+
+    /// <summary>
+    /// Tạm dừng timer (khi đang resolve gems, animation...)
+    /// </summary>
+    public void PauseTurnTimer()
+    {
+        timerRunning = false;
+    }
+
+    /// <summary>
+    /// Tiếp tục timer
+    /// </summary>
+    public void ResumeTurnTimer()
+    {
+        timerRunning = true;
     }
 
     // =====================================================
